@@ -7,7 +7,7 @@ Users can flag a wrong verdict, missing alternatives, or incorrect brand info.
 1. New Tables
 - `error_reports`
   - `id` (uuid, primary key)
-  - `brand` (text, not null) — the brand the report is about
+  - `brand` (text, not null, default 'عام') — the brand the report is about, or 'عام' for general complaints
   - `current_status` (text) — what the app reported (boycott / not_boycotted / local / unknown)
   - `correct_status` (text) — what the user believes is correct
   - `message` (text, not null) — free-form correction details
@@ -26,7 +26,7 @@ Users can flag a wrong verdict, missing alternatives, or incorrect brand info.
 
 CREATE TABLE IF NOT EXISTS error_reports (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  brand text NOT NULL,
+  brand text NOT NULL DEFAULT 'عام',
   current_status text,
   correct_status text,
   message text NOT NULL,

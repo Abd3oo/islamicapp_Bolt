@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Star, BookOpen, ScanLine, Home } from 'lucide-react';
+import { Star, BookOpen, ScanLine, Home, Flag } from 'lucide-react';
+import ReportModal from './ReportModal';
 
 export type Page = 'home' | 'hadith' | 'scanner';
 
@@ -25,6 +26,7 @@ const stars = Array.from({ length: 28 }, (_, i) => ({
 
 export default function Layout({ currentPage, onNavigate, children }: LayoutProps) {
   const [scrolled, setScrolled] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -100,9 +102,27 @@ export default function Layout({ currentPage, onNavigate, children }: LayoutProp
                 );
               })}
             </nav>
+
+            <button
+              onClick={() => setReportOpen(true)}
+              title="إبلاغ عن خطأ أو شكوى"
+              className="hidden sm:inline-flex items-center gap-2 glass text-slate-200 hover:text-amber-300 font-medium px-3.5 py-2 rounded-2xl hover:bg-white/10 transition-colors text-sm"
+            >
+              <Flag className="w-4 h-4" />
+              <span>شكوى</span>
+            </button>
           </div>
         </div>
       </header>
+
+      {/* Floating complaint button (mobile) */}
+      <button
+        onClick={() => setReportOpen(true)}
+        title="إبلاغ عن خطأ أو شكوى"
+        className="sm:hidden fixed bottom-5 left-5 z-40 w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 text-white flex items-center justify-center shadow-xl shadow-amber-500/40 hover:scale-105 transition-transform"
+      >
+        <Flag className="w-6 h-6" />
+      </button>
 
       <main className="relative max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">{children}</main>
 
@@ -116,6 +136,8 @@ export default function Layout({ currentPage, onNavigate, children }: LayoutProp
           </p>
         </div>
       </footer>
+
+      <ReportModal open={reportOpen} brand="" onClose={() => setReportOpen(false)} />
     </div>
   );
 }

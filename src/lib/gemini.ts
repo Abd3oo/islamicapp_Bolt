@@ -131,7 +131,7 @@ function normalizeStatus(s?: string): ProductStatus {
 
 export async function submitErrorReport(report: ErrorReport): Promise<void> {
   const { error } = await supabase.from('error_reports').insert({
-    brand: report.brand,
+    brand: report.brand || 'عام',
     current_status: report.currentStatus,
     correct_status: report.correctStatus,
     message: report.message,
