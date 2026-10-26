@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color-scheme: dark;
+  }
+  body {
+    font-family: 'Tajawal', system-ui, sans-serif;
+    background-color: #060912;
+    color: #e6ecf5;
+  }
+  ::selection {
+    background-color: rgba(51, 102, 255, 0.4);
+    color: #fff;
+  }
+}
+
+@layer utilities {
+  .font-arabic {
+    font-family: 'Amiri', serif;
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .text-gradient {
+    background: linear-gradient(120deg, #7dd3fc, #598dff, #3366ff);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradientX 8s ease infinite;
+  }
+  .glass {
+    background: rgba(17, 24, 39, 0.55);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+  }
+  .glass-strong {
+    background: rgba(10, 15, 28, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .glow-blue {
+    box-shadow: 0 0 40px -10px rgba(51, 102, 255, 0.55);
+  }
+  .glow-sky {
+    box-shadow: 0 0 50px -12px rgba(56, 189, 248, 0.6);
+  }
+}
