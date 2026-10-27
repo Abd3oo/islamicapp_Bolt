@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Star, BookOpen, ScanLine, Home, Flag, AlertTriangle, Shield } from 'lucide-react';
-import ReportModal from './ReportModal';
+import { Star, BookOpen, ScanLine, Home, AlertTriangle, Shield, LogIn, LogOut, User } from 'lucide-react';
 import ProblemModal from './ProblemModal';
+import { useAuth } from '../lib/auth';
 
-export type Page = 'home' | 'hadith' | 'scanner' | 'admin';
+export type Page = 'home' | 'hadith' | 'scanner' | 'admin' | 'login' | 'signup';
 
 interface LayoutProps {
   currentPage: Page;
@@ -26,8 +26,8 @@ const stars = Array.from({ length: 28 }, (_, i) => ({
 }));
 
 export default function Layout({ currentPage, onNavigate, children }: LayoutProps) {
+  const { user, signOut } = useAuth();
   const [scrolled, setScrolled] = useState(false);
-  const [reportOpen, setReportOpen] = useState(false);
   const [problemOpen, setProblemOpen] = useState(false);
 
   useEffect(() => {
@@ -113,14 +113,30 @@ export default function Layout({ currentPage, onNavigate, children }: LayoutProp
               </button>
             </nav>
 
-            <button
-              onClick={() => setReportOpen(true)}
-              title="إبلاغ عن خطأ أو شكوى"
-              className="hidden sm:inline-flex items-center gap-2 glass text-slate-200 hover:text-amber-300 font-medium px-3.5 py-2 rounded-2xl hover:bg-white/10 transition-colors text-sm"
-            >
-              <Flag className="w-4 h-4" />
-              <span>شكوى</span>
-            </button>
+            {user ? (
+              <div className="flex items-center gap-2">
+                <span className="hidden sm:inline-flex items-center gap-1.5 text-sky-300 text-sm font-medium px-2">
+                  <User className="w-4 h-4" />
+                  <span className="max-w-[140px] truncate" dir="ltr">{user.email}</span>
+                </span>
+                <button
+                  onClick={() => signOut()}
+                  title="تسجيل الخروج"
+                  className="inline-flex items-center gap-2 glass text-slate-300 hover:text-rose-300 font-medium px-3 py-2 rounded-2xl hover:bg-white/10 transition-colors text-sm"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span className="hidden sm:inline">خروج</span>
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => onNavigate('login')}
+                className="inline-flex items-center gap-2 bg-gradient-to-br from-sky-500 to-navy-600 text-white font-medium px-3.5 py-2 rounded-2xl hover:shadow-lg hover:shadow-navy-500/30 transition-all text-sm"
+              >
+                <LogIn className="w-4 h-4" />
+                <span>تسجيل الدخول</span>
+              </button>
+            )}
 
             <button
               onClick={() => onNavigate('admin')}
@@ -133,15 +149,6 @@ export default function Layout({ currentPage, onNavigate, children }: LayoutProp
           </div>
         </div>
       </header>
-
-      {/* Floating complaint button (mobile) */}
-      <button
-        onClick={() => setReportOpen(true)}
-        title="إبلاغ عن خطأ أو شكوى"
-        className="sm:hidden fixed bottom-5 left-5 z-40 w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 text-white flex items-center justify-center shadow-xl shadow-amber-500/40 hover:scale-105 transition-transform"
-      >
-        <Flag className="w-6 h-6" />
-      </button>
 
       <main className="relative max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">{children}</main>
 
@@ -156,7 +163,6 @@ export default function Layout({ currentPage, onNavigate, children }: LayoutProp
         </div>
       </footer>
 
-      <ReportModal open={reportOpen} brand="" onClose={() => setReportOpen(false)} />
       <ProblemModal open={problemOpen} page={currentPage} onClose={() => setProblemOpen(false)} />
     </div>
   );
