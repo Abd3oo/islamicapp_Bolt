@@ -138,14 +138,16 @@ export default function Layout({ currentPage, onNavigate, children }: LayoutProp
               </button>
             )}
 
-            <button
-              onClick={() => onNavigate('admin')}
-              title="لوحة الأمن"
-              className="inline-flex items-center justify-center glass text-slate-300 hover:text-sky-300 w-9 h-9 rounded-2xl hover:bg-white/10 transition-colors"
-              aria-label="لوحة الأمن"
-            >
-              <Shield className="w-4 h-4" />
-            </button>
+            {user?.email === 'abdelrhmanofficial11@gmail.com' && (
+              <button
+                onClick={() => onNavigate('admin')}
+                title="لوحة الأمن"
+                className="inline-flex items-center justify-center glass text-slate-300 hover:text-sky-300 w-9 h-9 rounded-2xl hover:bg-white/10 transition-colors"
+                aria-label="لوحة الأمن"
+              >
+                <Shield className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
       </header>
