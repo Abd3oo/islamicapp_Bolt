@@ -9,7 +9,7 @@ import { findLocalProduct } from '../lib/products';
 import ReportModal from '../components/ReportModal';
 import { supabase } from '../lib/gemini';
 import { useAuth } from '../lib/auth';
-import { getCountryAlternatives, categoryLabel, type Country, type ProductCategory } from '../lib/alternatives';
+import { getCountryCategoryAlternatives, detectCategory, categoryLabel, type Country } from '../lib/alternatives';
 
 type Verdict = 'boycott' | 'not_boycotted' | 'local' | 'unknown';
 
@@ -542,45 +542,42 @@ export default function Scanner({ country }: { country: Country }) {
           )}
 
           {/* Alternatives section — only for boycotted products */}
-          {isBoycott && !state.error && (
+          {isBoycott && !state.error && (() => {
+            const cat = detectCategory(state.brand ?? '');
+            const alts = getCountryCategoryAlternatives(country, cat);
+            return (
             <div className="rounded-3xl p-6 border border-emerald-500/30 bg-emerald-500/5 shadow-lg shadow-emerald-500/10">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-300 flex items-center justify-center">
                   <Lightbulb className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-emerald-300">البدائل المحلية في {country}</h3>
-                  <p className="text-slate-400 text-xs">بدائل عربية/محلية مصنّفة حسب النوع لدولتك</p>
+                  <h3 className="font-extrabold text-emerald-300">بدائل محلية في {country}</h3>
+                  <p className="text-slate-400 text-xs">
+                    {cat === 'general'
+                      ? 'بدائل عربية/محلية بديلة للمنتج المقاطَع'
+                      : `${categoryLabel(cat)} — بدائل غير مقاطَعة من بلدك`}
+                  </p>
                 </div>
               </div>
-              <div className="space-y-4">
-                {getCountryAlternatives(country).map((group) => (
-                  <div key={group.category}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-[11px] font-bold text-emerald-200/80 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-2.5 py-0.5">
-                        {categoryLabel(group.category)}
-                      </span>
+              <div className="grid sm:grid-cols-2 gap-2.5">
+                {alts.map((alt, i) => (
+                  <div
+                    key={`${alt}-${i}`}
+                    className="flex items-center gap-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 px-3.5 py-3 animate-slide-up"
+                    style={{ animationDelay: `${i * 60}ms` }}
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center flex-shrink-0">
+                      <CheckCircle2 className="w-4 h-4" />
                     </div>
-                    <div className="grid sm:grid-cols-2 gap-2">
-                      {group.brands.map((alt, i) => (
-                        <div
-                          key={`${group.category}-${alt}-${i}`}
-                          className="flex items-center gap-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 px-3.5 py-2.5"
-                        >
-                          <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center flex-shrink-0">
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                          </div>
-                          <span className="text-slate-100 text-sm font-medium">{alt}</span>
-                        </div>
-                      ))}
-                    </div>
+                    <span className="text-slate-100 text-sm font-medium">{alt}</span>
                   </div>
                 ))}
               </div>
 
               {hasAlternatives && (
                 <div className="mt-5 pt-4 border-t border-emerald-500/20">
-                  <p className="text-xs text-slate-400 mb-2">بدائل مقترحة من قاعدة بيانات المنتج:</p>
+                  <p className="text-xs text-slate-400 mb-2">بدائل إضافية مقترحة:</p>
                   <div className="flex flex-wrap gap-2">
                     {state.alternatives!.map((alt, i) => (
                       <span
@@ -595,7 +592,8 @@ export default function Scanner({ country }: { country: Country }) {
                 </div>
               )}
             </div>
-          )}
+            );
+          })()}
 
           {/* Report error button */}
           {!state.error && (
