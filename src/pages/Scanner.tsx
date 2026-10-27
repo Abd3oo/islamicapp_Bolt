@@ -2,11 +2,13 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import {
   Camera, RotateCcw, ScanLine, Loader2, CheckCircle2, XCircle, AlertCircle,
   CameraOff, Image as ImageIcon, X, Search, Flag, Sparkles, Building2, MapPin,
-  Lightbulb,
+  Lightbulb, History, Trash2, Clock,
 } from 'lucide-react';
 import { analyzeProduct, type ProductResult } from '../lib/gemini';
 import { findLocalProduct } from '../lib/products';
 import ReportModal from '../components/ReportModal';
+import { supabase } from '../lib/gemini';
+import { useAuth } from '../lib/auth';
 
 type Verdict = 'boycott' | 'not_boycotted' | 'local' | 'unknown';
 
@@ -79,6 +81,63 @@ export default function Scanner() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { user } = useAuth();
+  const [history, setHistory] = useState<ProductHistoryItem[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  interface ProductHistoryItem {
+    id: string;
+    brand: string | null;
+    verdict: string | null;
+    source: string | null;
+    created_at: string;
+  }
+
+  const loadHistory = useCallback(async () => {
+    if (!user) return;
+    setHistoryLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('product_scans')
+        .select('id, brand, verdict, source, created_at')
+        .order('created_at', { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      setHistory(data ?? []);
+    } catch {
+      setHistory([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    loadHistory();
+  }, [loadHistory]);
+
+  const saveScan = async (s: ScanState) => {
+    if (!user || !s.verdict || s.error) return;
+    await supabase.from('product_scans').insert({
+      brand: s.brand ?? null,
+      verdict: s.verdict,
+      source: s.source ?? null,
+      parent_company: s.parentCompany ?? null,
+      country: s.country ?? null,
+      reason: s.reason ?? null,
+      alternatives: s.alternatives ?? null,
+    });
+    loadHistory();
+  };
+
+  const deleteHistoryItem = async (id: string) => {
+    setHistory((h) => h.filter((x) => x.id !== id));
+    await supabase.from('product_scans').delete().eq('id', id);
+  };
+
+  const clearHistory = async () => {
+    setHistory([]);
+    await supabase.from('product_scans').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+  };
 
   const startCamera = useCallback(async () => {
     setState((s) => ({ ...s, error: undefined }));
@@ -187,6 +246,17 @@ export default function Scanner() {
         alternatives: r.alternatives,
         capturedImage: imageData,
       });
+      saveScan({
+        status: 'result',
+        source: r.source,
+        verdict: toVerdict(r.status),
+        brand: r.brand,
+        parentCompany: r.parentCompany,
+        country: r.country,
+        reason: r.reason,
+        alternatives: r.alternatives,
+        capturedImage: imageData,
+      });
     } catch (err) {
       setState({
         status: 'result',
@@ -203,7 +273,7 @@ export default function Scanner() {
     if (!q) return;
     const local = findLocalProduct(q);
     if (local) {
-      setState({
+      const localState: ScanState = {
         status: 'result',
         source: 'local_db',
         verdict: toVerdict(local.status),
@@ -212,7 +282,9 @@ export default function Scanner() {
         country: local.country,
         reason: local.reason,
         alternatives: local.alternatives,
-      });
+      };
+      setState(localState);
+      saveScan(localState);
     } else {
       setState({
         status: 'result',
@@ -528,6 +600,79 @@ export default function Scanner() {
               </p>
             </div>
           </div>
+        </div>
+      )}
+
+      {user && (
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <History className="w-5 h-5 text-sky-300" />
+              <h2 className="text-lg font-bold text-white">سجل الفحوصات</h2>
+            </div>
+            {history.length > 0 && (
+              <button
+                onClick={clearHistory}
+                className="text-xs text-slate-400 hover:text-rose-300 transition-colors"
+              >
+                مسح الكل
+              </button>
+            )}
+          </div>
+
+          {historyLoading ? (
+            <div className="glass rounded-2xl p-6 text-center">
+              <Loader2 className="w-5 h-5 text-sky-300 animate-spin mx-auto" />
+            </div>
+          ) : history.length === 0 ? (
+            <div className="glass rounded-2xl p-6 text-center text-slate-500 text-sm">
+              لا توجد فحوصات سابقة بعد
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {history.map((item) => {
+                const v = item.verdict as Verdict | null;
+                const info = v ? verdictInfo[v] : null;
+                const Icon = info?.icon;
+                return (
+                  <div
+                    key={item.id}
+                    className="glass rounded-2xl p-4 flex items-start gap-3 group hover:bg-white/[0.07] transition-colors"
+                  >
+                    <div className={`w-9 h-9 rounded-xl ${info ? `${info.bg} ${info.color}` : 'bg-navy-500/15 text-sky-300'} flex items-center justify-center flex-shrink-0`}>
+                      {Icon ? <Icon className="w-4 h-4" /> : <ScanLine className="w-4 h-4" />}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-slate-100 text-sm font-medium truncate">
+                        {item.brand ?? 'منتج غير محدد'}
+                      </p>
+                      <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-500">
+                        {info && (
+                          <span className={info.color}>{info.label}</span>
+                        )}
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {new Date(item.created_at).toLocaleDateString('ar-EG', {
+                            day: 'numeric',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => deleteHistoryItem(item.id)}
+                      className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-300 transition-all flex-shrink-0"
+                      aria-label="حذف"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 

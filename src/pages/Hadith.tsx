@@ -1,6 +1,8 @@
-import { useState } from 'react';
-import { Search, Loader2, CheckCircle2, AlertTriangle, XCircle, BookOpen, Info, Sparkles, RotateCcw, AlertCircle } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Search, Loader2, CheckCircle2, AlertTriangle, XCircle, BookOpen, Info, Sparkles, RotateCcw, AlertCircle, History, Trash2, Clock } from 'lucide-react';
 import { verifyHadith, type HadithResult } from '../lib/gemini';
+import { supabase } from '../lib/gemini';
+import { useAuth } from '../lib/auth';
 
 type ApiStatus = 'sahih' | 'hasan' | 'daif' | 'mawdu' | 'unknown';
 
@@ -39,6 +41,39 @@ function mapStatus(raw: string): { status: ApiStatus; label: string } {
 export default function Hadith() {
   const [input, setInput] = useState('');
   const [state, setState] = useState<State>({ kind: 'empty' });
+  const { user } = useAuth();
+  const [history, setHistory] = useState<HadithHistoryItem[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  interface HadithHistoryItem {
+    id: string;
+    hadith_text: string;
+    status_label: string | null;
+    source: string | null;
+    created_at: string;
+  }
+
+  const loadHistory = useCallback(async () => {
+    if (!user) return;
+    setHistoryLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('hadith_scans')
+        .select('id, hadith_text, status_label, source, created_at')
+        .order('created_at', { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      setHistory(data ?? []);
+    } catch {
+      setHistory([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    loadHistory();
+  }, [loadHistory]);
 
   const handleSearch = async () => {
     const text = input.trim();
@@ -57,9 +92,30 @@ export default function Hadith() {
           explanation: r.explanation ?? '',
         },
       });
+      if (user) {
+        await supabase.from('hadith_scans').insert({
+          hadith_text: text,
+          status: r.status ?? '',
+          status_label: label,
+          source: r.source ?? '',
+          narrator: r.narrator ?? '',
+          explanation: r.explanation ?? '',
+        });
+        loadHistory();
+      }
     } catch (err) {
       setState({ kind: 'error', message: err instanceof Error ? err.message : 'حدث خطأ غير متوقع' });
     }
+  };
+
+  const deleteHistoryItem = async (id: string) => {
+    setHistory((h) => h.filter((x) => x.id !== id));
+    await supabase.from('hadith_scans').delete().eq('id', id);
+  };
+
+  const clearHistory = async () => {
+    setHistory([]);
+    await supabase.from('hadith_scans').delete().neq('id', '00000000-0000-0000-0000-000000000000');
   };
 
   const handleReset = () => {
@@ -137,6 +193,95 @@ export default function Hadith() {
           </div>
           <p className="text-slate-300 font-medium mb-1">ابدأ بكتابة حديث</p>
           <p className="text-slate-500 text-sm">ستظهر النتيجة هنا بعد الفحص</p>
+        </div>
+      )}
+
+      {user && (
+        <HistorySection
+          history={history}
+          loading={historyLoading}
+          onDelete={deleteHistoryItem}
+          onClear={clearHistory}
+        />
+      )}
+    </div>
+  );
+}
+
+function HistorySection({
+  history,
+  loading,
+  onDelete,
+  onClear,
+}: {
+  history: HadithHistoryItem[];
+  loading: boolean;
+  onDelete: (id: string) => void;
+  onClear: () => void;
+}) {
+  return (
+    <div className="mt-8">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <History className="w-5 h-5 text-sky-300" />
+          <h2 className="text-lg font-bold text-white">سجل الفحوصات</h2>
+        </div>
+        {history.length > 0 && (
+          <button
+            onClick={onClear}
+            className="text-xs text-slate-400 hover:text-rose-300 transition-colors"
+          >
+            مسح الكل
+          </button>
+        )}
+      </div>
+
+      {loading ? (
+        <div className="glass rounded-2xl p-6 text-center">
+          <Loader2 className="w-5 h-5 text-sky-300 animate-spin mx-auto" />
+        </div>
+      ) : history.length === 0 ? (
+        <div className="glass rounded-2xl p-6 text-center text-slate-500 text-sm">
+          لا توجد فحوصات سابقة بعد
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {history.map((item) => (
+            <div
+              key={item.id}
+              className="glass rounded-2xl p-4 flex items-start gap-3 group hover:bg-white/[0.07] transition-colors"
+            >
+              <div className="w-9 h-9 rounded-xl bg-navy-500/15 text-sky-300 flex items-center justify-center flex-shrink-0">
+                <BookOpen className="w-4 h-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-slate-100 text-sm line-clamp-2 leading-relaxed">
+                  {item.hadith_text}
+                </p>
+                <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-500">
+                  {item.status_label && (
+                    <span className="text-sky-300 font-medium">{item.status_label}</span>
+                  )}
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {new Date(item.created_at).toLocaleDateString('ar-EG', {
+                      day: 'numeric',
+                      month: 'short',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => onDelete(item.id)}
+                className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-300 transition-all flex-shrink-0"
+                aria-label="حذف"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
         </div>
       )}
     </div>
