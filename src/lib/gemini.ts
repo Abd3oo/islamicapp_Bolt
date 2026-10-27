@@ -138,3 +138,11 @@ export async function submitErrorReport(report: ErrorReport): Promise<void> {
   });
   if (error) throw new Error(error.message ?? 'تعذّر إرسال البلاغ');
 }
+
+export async function submitIssueReport(message: string, page?: string): Promise<void> {
+  const { error } = await supabase.from('issue_reports').insert({
+    message,
+    page: page ?? null,
+  });
+  if (error) throw new Error(error.message ?? 'تعذّر إرسال البلاغ');
+}

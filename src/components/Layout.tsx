@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Star, BookOpen, ScanLine, Home, Flag } from 'lucide-react';
+import { Star, BookOpen, ScanLine, Home, Flag, AlertTriangle } from 'lucide-react';
 import ReportModal from './ReportModal';
+import ProblemModal from './ProblemModal';
 
 export type Page = 'home' | 'hadith' | 'scanner';
 
@@ -27,6 +28,7 @@ const stars = Array.from({ length: 28 }, (_, i) => ({
 export default function Layout({ currentPage, onNavigate, children }: LayoutProps) {
   const [scrolled, setScrolled] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [problemOpen, setProblemOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -101,6 +103,14 @@ export default function Layout({ currentPage, onNavigate, children }: LayoutProp
                   </button>
                 );
               })}
+              <button
+                onClick={() => setProblemOpen(true)}
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-medium text-amber-300 hover:text-amber-200 hover:bg-amber-500/10 transition-all"
+                aria-label="أبلغ عن مشكلة"
+              >
+                <AlertTriangle className="w-4 h-4" />
+                <span className="hidden sm:inline">مشكلة</span>
+              </button>
             </nav>
 
             <button
@@ -138,6 +148,7 @@ export default function Layout({ currentPage, onNavigate, children }: LayoutProp
       </footer>
 
       <ReportModal open={reportOpen} brand="" onClose={() => setReportOpen(false)} />
+      <ProblemModal open={problemOpen} page={currentPage} onClose={() => setProblemOpen(false)} />
     </div>
   );
 }
