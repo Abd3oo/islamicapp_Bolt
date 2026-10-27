@@ -14,6 +14,60 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
+import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+
+function getClientIp(req: Request): string {
+  const fwd = req.headers.get("x-forwarded-for");
+  if (fwd) return fwd.split(",")[0].trim();
+  return req.headers.get("x-real-ip") ?? "0.0.0.0";
+}
+
+async function isIpBlocked(ip: string): Promise<boolean> {
+  const url = Deno.env.get("SUPABASE_URL") ?? "";
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  if (!url || !serviceKey) return false;
+  const sb = createClient(url, serviceKey, { auth: { persistSession: false } });
+  const { data } = await sb.from("blocked_ips").select("ip").eq("ip", ip).maybeSingle();
+  return !!data;
+}
+
+// Heuristic patterns for injection / XSS attempts in text inputs.
+const SUSPICIOUS_PATTERNS = [
+  /(\b(union)\b.+\b(select|insert|update|delete|drop)\b)/i,
+  /('(--|;\s*drop|;\s*select|;\s*update|;\s*insert)/i,
+  /<\s*script/i,
+  /on(error|load|click|mouseover|focus)\s*=/i,
+  /javascript:/i,
+  /\bor\s+1\s*=\s*1/i,
+  /\bselect\b.+\bfrom\b/i,
+  /<\s*img[^>]+onerror/i,
+  /<\s*iframe/i,
+  /<\s*svg[^>]+onload/i,
+];
+
+function detectSuspicious(text: string): string | null {
+  if (!text || typeof text !== "string") return null;
+  for (const pat of SUSPICIOUS_PATTERNS) {
+    if (pat.test(text)) {
+      if (/<\s*script|javascript:|onerror|onload\s*=|<\s*iframe|<\s*svg/i.test(text)) return "xss_attempt";
+      return "sql_injection_attempt";
+    }
+  }
+  return null;
+}
+
+async function logActivity(ip: string, type: string, detail: string, path: string): Promise<void> {
+  const url = Deno.env.get("SUPABASE_URL") ?? "";
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  if (!url || !serviceKey) return;
+  try {
+    const sb = createClient(url, serviceKey, { auth: { persistSession: false } });
+    await sb.from("suspicious_activities").insert({ ip, type, detail, path });
+  } catch {
+    // best-effort logging
+  }
+}
+
 // Models tried in order — newest/stablest first, with reliable fallbacks.
 // Models tried in order — start with the one confirmed available & fast,
 // then fallback to others that may recover from overload.
@@ -173,6 +227,17 @@ Deno.serve(async (req: Request) => {
     );
   }
 
+  const clientIp = getClientIp(req);
+
+  // Block check: reject requests from blacklisted IPs at the server level
+  if (await isIpBlocked(clientIp)) {
+    await logActivity(clientIp, "blocked_access_attempt", "محاولة وصول من IP محظور", "gemini-proxy");
+    return new Response(
+      JSON.stringify({ error: "تم حظر جهازك من استخدام هذه الخدمة لأسباب أمنية.", blocked: true }),
+      { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
   try {
     const body = await req.json();
     const type = body?.type;
@@ -211,6 +276,15 @@ Deno.serve(async (req: Request) => {
       if (!text) {
         return new Response(
           JSON.stringify({ error: "النص فارغ" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      // Check for suspicious input (SQL injection / XSS patterns)
+      const susType = detectSuspicious(text);
+      if (susType) {
+        await logActivity(clientIp, susType, `حقل الحديث: ${text.slice(0, 200)}`, "hadith");
+        return new Response(
+          JSON.stringify({ error: "تم رصد إدخال مشبوه وتم تسجيله." }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }

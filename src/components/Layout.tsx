@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Star, BookOpen, ScanLine, Home, Flag, AlertTriangle } from 'lucide-react';
+import { Star, BookOpen, ScanLine, Home, Flag, AlertTriangle, Shield } from 'lucide-react';
 import ReportModal from './ReportModal';
 import ProblemModal from './ProblemModal';
 
-export type Page = 'home' | 'hadith' | 'scanner';
+export type Page = 'home' | 'hadith' | 'scanner' | 'admin';
 
 interface LayoutProps {
   currentPage: Page;
@@ -120,6 +120,15 @@ export default function Layout({ currentPage, onNavigate, children }: LayoutProp
             >
               <Flag className="w-4 h-4" />
               <span>شكوى</span>
+            </button>
+
+            <button
+              onClick={() => onNavigate('admin')}
+              title="لوحة الأمن"
+              className="inline-flex items-center justify-center glass text-slate-300 hover:text-sky-300 w-9 h-9 rounded-2xl hover:bg-white/10 transition-colors"
+              aria-label="لوحة الأمن"
+            >
+              <Shield className="w-4 h-4" />
             </button>
           </div>
         </div>
