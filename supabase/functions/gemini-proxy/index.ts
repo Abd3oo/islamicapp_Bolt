@@ -7,6 +7,8 @@
 //
 // Robustness: tries multiple Gemini models in order, with per-request timeout,
 // so a single model being overloaded or deprecated doesn't break the app.
+// Security: checks IP blacklist + logs suspicious input patterns.
+
 
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 
@@ -38,8 +40,8 @@ async function isIpBlocked(ip: string): Promise<boolean> {
 
 // Heuristic patterns for injection / XSS attempts in text inputs.
 const SUSPICIOUS_PATTERNS = [
-  /(\b(union)\b.+\b(select|insert|update|delete|drop)\b)/i,
-  /('(--|;\s*drop|;\s*select|;\s*update|;\s*insert)/i,
+  /(\bunion\b.+\b(select|insert|update|delete|drop)\b)/i,
+  /'(--|;\s*drop|;\s*select|;\s*update|;\s*insert)/i,
   /<\s*script/i,
   /on(error|load|click|mouseover|focus)\s*=/i,
   /javascript:/i,
