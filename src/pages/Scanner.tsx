@@ -236,28 +236,28 @@ export default function Scanner({ country }: { country: Country }) {
     setState({ status: 'scanning', capturedImage: imageData });
     try {
       const r: ProductResult = await analyzeProduct(imageData);
-      setState({
-        status: 'result',
-        source: r.source,
-        verdict: toVerdict(r.status),
-        brand: r.brand,
-        parentCompany: r.parentCompany,
-        country: r.country,
-        reason: r.reason,
-        alternatives: r.alternatives,
-        capturedImage: imageData,
-      });
-      saveScan({
-        status: 'result',
-        source: r.source,
-        verdict: toVerdict(r.status),
-        brand: r.brand,
-        parentCompany: r.parentCompany,
-        country: r.country,
-        reason: r.reason,
-        alternatives: r.alternatives,
-        capturedImage: imageData,
-      });
+      const local = r.brand ? findLocalProduct(r.brand) : null;
+      const resolved = local
+        ? {
+            source: 'local_db' as const,
+            verdict: toVerdict(local.status),
+            brand: local.brand,
+            parentCompany: local.parentCompany,
+            country: local.country,
+            reason: local.reason,
+            alternatives: local.alternatives,
+          }
+        : {
+            source: r.source,
+            verdict: toVerdict(r.status),
+            brand: r.brand,
+            parentCompany: r.parentCompany,
+            country: r.country,
+            reason: r.reason,
+            alternatives: r.alternatives,
+          };
+      setState({ status: 'result', capturedImage: imageData, ...resolved });
+      saveScan({ status: 'result', capturedImage: imageData, ...resolved });
     } catch (err) {
       setState({
         status: 'result',
