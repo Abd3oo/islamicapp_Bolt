@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X, Loader2, Send, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { submitIssueReport } from '../lib/gemini';
+import { useAuth } from '../lib/auth';
 
 interface ProblemModalProps {
   open: boolean;
@@ -9,6 +10,7 @@ interface ProblemModalProps {
 }
 
 export default function ProblemModal({ open, page, onClose }: ProblemModalProps) {
+  const { user } = useAuth();
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
@@ -24,7 +26,7 @@ export default function ProblemModal({ open, page, onClose }: ProblemModalProps)
     setSubmitting(true);
     setError(null);
     try {
-      await submitIssueReport(message.trim(), page);
+      await submitIssueReport(message.trim(), page, user?.email);
       setDone(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'تعذّر إرسال البلاغ');

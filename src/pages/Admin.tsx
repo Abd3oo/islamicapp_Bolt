@@ -1,17 +1,17 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Shield, ShieldX, Lock, Loader2, AlertTriangle, Ban, Search, RefreshCw,
-  Trash2, ArrowLeft, Activity, Eye, EyeOff, ChevronLeft,
+  Trash2, ArrowLeft, Activity, Eye, EyeOff, ChevronLeft, Users, MessageSquare, User,
 } from 'lucide-react';
 import {
   adminLogin, adminLogout, listBlockedIps, blockIp, unblockIp,
-  listActivities, getStats,
-  type BlockedIp, type SuspiciousActivity,
+  listActivities, getStats, listUsers, listComplaints,
+  type BlockedIp, type SuspiciousActivity, type AdminUser, type Complaint,
 } from '../lib/admin';
 
 const TOKEN_KEY = 'najma_admin_token';
 
-type Tab = 'overview' | 'activities' | 'blacklist';
+type Tab = 'overview' | 'activities' | 'blacklist' | 'users' | 'complaints';
 
 export default function Admin({ onExit }: { onExit: () => void }) {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY));
@@ -23,7 +23,9 @@ export default function Admin({ onExit }: { onExit: () => void }) {
   const [tab, setTab] = useState<Tab>('overview');
   const [blocked, setBlocked] = useState<BlockedIp[]>([]);
   const [activities, setActivities] = useState<SuspiciousActivity[]>([]);
-  const [stats, setStats] = useState({ blocked: 0, activities: 0 });
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [stats, setStats] = useState({ blocked: 0, activities: 0, users: 0, complaints: 0 });
   const [loading, setLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [searchIp, setSearchIp] = useState('');
@@ -33,10 +35,15 @@ export default function Admin({ onExit }: { onExit: () => void }) {
     setLoading(true);
     setActionError(null);
     try {
-      const [b, a, s] = await Promise.all([listBlockedIps(token), listActivities(token, 200, 0), getStats(token)]);
+      const [b, a, s, u, c] = await Promise.all([
+        listBlockedIps(token), listActivities(token, 200, 0), getStats(token),
+        listUsers(token), listComplaints(token, 200, 0),
+      ]);
       setBlocked(b);
       setActivities(a);
       setStats(s);
+      setUsers(u);
+      setComplaints(c);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'فشل تحميل البيانات';
       if (msg.includes('غير مصرح') || msg.includes('401')) {
@@ -52,6 +59,13 @@ export default function Admin({ onExit }: { onExit: () => void }) {
 
   useEffect(() => {
     if (token) refresh();
+  }, [token, refresh]);
+
+  // Auto-refresh every 5 seconds for near-realtime updates
+  useEffect(() => {
+    if (!token) return;
+    const interval = setInterval(() => refresh(), 5000);
+    return () => clearInterval(interval);
   }, [token, refresh]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -213,11 +227,13 @@ export default function Admin({ onExit }: { onExit: () => void }) {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-1 glass rounded-2xl p-1 mb-6 w-fit">
+      <div className="flex gap-1 glass rounded-2xl p-1 mb-6 w-fit max-w-full overflow-x-auto">
         {([
           { id: 'overview', label: 'نظرة عامة', icon: Activity },
-          { id: 'activities', label: 'الأنشطة المشبوهة', icon: AlertTriangle },
+          { id: 'activities', label: 'أنشطة مشبوهة', icon: AlertTriangle },
           { id: 'blacklist', label: 'قائمة الحظر', icon: Ban },
+          { id: 'users', label: 'المستخدمون', icon: Users },
+          { id: 'complaints', label: 'الشكاوى', icon: MessageSquare },
         ] as { id: Tab; label: string; icon: typeof Activity }[]).map((t) => {
           const Icon = t.icon;
           const active = tab === t.id;
@@ -239,7 +255,7 @@ export default function Admin({ onExit }: { onExit: () => void }) {
         })}
       </div>
 
-      {/* Search bar (for activities & blacklist tabs) */}
+      {/* Search bar (for non-overview tabs) */}
       {tab !== 'overview' && (
         <div className="relative mb-5 max-w-xs">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -247,7 +263,7 @@ export default function Admin({ onExit }: { onExit: () => void }) {
             type="text"
             value={searchIp}
             onChange={(e) => setSearchIp(e.target.value)}
-            placeholder="بحث بعنوان IP..."
+            placeholder={tab === 'users' ? 'بحث بالإيميل...' : tab === 'complaints' ? 'بحث في الشكاوى...' : 'بحث بعنوان IP...'}
             className="w-full bg-ink-900/60 border border-white/10 rounded-2xl pr-9 pl-4 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-navy-400/60 focus:border-transparent transition-all text-sm"
             dir="ltr"
           />
@@ -290,6 +306,41 @@ export default function Admin({ onExit }: { onExit: () => void }) {
               className="text-amber-300 hover:text-amber-200 text-sm font-medium transition-colors"
             >
               عرض السجل ←
+            </button>
+          </div>
+          <div className="glass rounded-3xl p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-sky-500/10 text-sky-300 flex items-center justify-center border border-sky-500/30">
+                <Users className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-slate-400 text-xs">المستخدمون المسجلون</p>
+                <p className="text-3xl font-extrabold text-white">{stats.users}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setTab('users')}
+              className="text-sky-300 hover:text-sky-200 text-sm font-medium transition-colors"
+            >
+              عرض القائمة ←
+            </button>
+          </div>
+
+          <div className="glass rounded-3xl p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-300 flex items-center justify-center border border-emerald-500/30">
+                <MessageSquare className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-slate-400 text-xs">الشكاوى والبلاغات</p>
+                <p className="text-3xl font-extrabold text-white">{stats.complaints}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setTab('complaints')}
+              className="text-emerald-300 hover:text-emerald-200 text-sm font-medium transition-colors"
+            >
+              عرض الشكاوى ←
             </button>
           </div>
         </div>
@@ -395,6 +446,105 @@ export default function Admin({ onExit }: { onExit: () => void }) {
 
           {/* Manual block form */}
           <ManualBlockForm onBlock={handleBlock} />
+        </div>
+      )}
+
+      {/* Users tab */}
+      {tab === 'users' && (
+        <div className="glass rounded-3xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-white/10 text-slate-400">
+                  <th className="text-right py-3 px-4 font-medium">البريد الإلكتروني</th>
+                  <th className="text-right py-3 px-4 font-medium hidden sm:table-cell">تاريخ التسجيل</th>
+                  <th className="text-right py-3 px-4 font-medium hidden md:table-cell">آخر دخول</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.filter((u) => !searchIp.trim() || u.email.includes(searchIp.trim())).length === 0 && (
+                  <tr>
+                    <td colSpan={3} className="text-center py-10 text-slate-500">
+                      {loading ? 'جارٍ التحميل...' : 'لا يوجد مستخدمون مسجلون'}
+                    </td>
+                  </tr>
+                )}
+                {users
+                  .filter((u) => !searchIp.trim() || u.email.includes(searchIp.trim()))
+                  .map((u) => (
+                    <tr key={u.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg bg-sky-500/10 text-sky-300 flex items-center justify-center flex-shrink-0">
+                            <User className="w-4 h-4" />
+                          </div>
+                          <span className="text-slate-200" dir="ltr">{u.email}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-slate-400 hidden sm:table-cell whitespace-nowrap">
+                        {new Date(u.created_at).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' })}
+                      </td>
+                      <td className="py-3 px-4 text-slate-400 hidden md:table-cell whitespace-nowrap">
+                        {u.last_sign_in_at
+                          ? new Date(u.last_sign_in_at).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' })
+                          : '—'}
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Complaints tab */}
+      {tab === 'complaints' && (
+        <div className="glass rounded-3xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-white/10 text-slate-400">
+                  <th className="text-right py-3 px-4 font-medium">نص الشكوى</th>
+                  <th className="text-right py-3 px-4 font-medium hidden sm:table-cell">إيميل المرسل</th>
+                  <th className="text-right py-3 px-4 font-medium hidden md:table-cell">الصفحة</th>
+                  <th className="text-right py-3 px-4 font-medium hidden md:table-cell">التاريخ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {complaints
+                  .filter((c) => !searchIp.trim() || (c.message?.includes(searchIp.trim()) || c.email?.includes(searchIp.trim())))
+                  .length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="text-center py-10 text-slate-500">
+                      {loading ? 'جارٍ التحميل...' : 'لا توجد شكاوى'}
+                    </td>
+                  </tr>
+                )}
+                {complaints
+                  .filter((c) => !searchIp.trim() || (c.message?.includes(searchIp.trim()) || c.email?.includes(searchIp.trim())))
+                  .map((c) => (
+                    <tr key={c.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                      <td className="py-3 px-4 text-slate-200 max-w-md">
+                        <p className="line-clamp-2" title={c.message}>{c.message}</p>
+                      </td>
+                      <td className="py-3 px-4 hidden sm:table-cell">
+                        {c.email ? (
+                          <span className="text-sky-300" dir="ltr">{c.email}</span>
+                        ) : (
+                          <span className="text-slate-500">زائر</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-slate-400 hidden md:table-cell">
+                        {c.page ?? '—'}
+                      </td>
+                      <td className="py-3 px-4 text-slate-400 hidden md:table-cell whitespace-nowrap">
+                        {new Date(c.created_at).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' })}
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

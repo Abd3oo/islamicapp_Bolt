@@ -167,6 +167,36 @@ async function checkBlocked(ip: string): Promise<Response> {
   );
 }
 
+// --- List registered users (from auth.users via service_role) ---
+async function listUsers(): Promise<Response> {
+  const sb = adminClient();
+  const { data, error } = await sb.auth.admin.listUsers();
+  if (error) return adminError(500, "تعذّر قراءة قائمة المستخدمين");
+  const users = (data.users ?? []).map((u) => ({
+    id: u.id,
+    email: u.email ?? "",
+    created_at: u.created_at,
+    last_sign_in_at: u.last_sign_in_at ?? null,
+  }));
+  return new Response(JSON.stringify({ ok: true, users }), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+// --- List user complaints (issue_reports) ---
+async function listComplaints(limit: number, offset: number): Promise<Response> {
+  const sb = adminClient();
+  const { data, error } = await sb
+    .from("issue_reports")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+  if (error) return adminError(500, "تعذّر قراءة الشكاوى");
+  return new Response(JSON.stringify({ ok: true, complaints: data ?? [] }), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
@@ -217,14 +247,26 @@ Deno.serve(async (req: Request) => {
       return await listActivities(limit, offset);
     }
 
+    if (path === "users" || path === "/users") {
+      return await listUsers();
+    }
+
+    if (path === "complaints" || path === "/complaints") {
+      const limit = parseInt(url.searchParams.get("limit") ?? "200", 10);
+      const offset = parseInt(url.searchParams.get("offset") ?? "0", 10);
+      return await listComplaints(limit, offset);
+    }
+
     if (path === "stats" || path === "/stats") {
       const sb = adminClient();
-      const [{ count: blockedCount }, { count: activitiesCount }] = await Promise.all([
+      const [{ count: blockedCount }, { count: activitiesCount }, { count: usersCount }, { count: complaintsCount }] = await Promise.all([
         sb.from("blocked_ips").select("*", { count: "exact", head: true }),
         sb.from("suspicious_activities").select("*", { count: "exact", head: true }),
+        sb.from("auth.users").select("*", { count: "exact", head: true }),
+        sb.from("issue_reports").select("*", { count: "exact", head: true }),
       ]);
       return new Response(
-        JSON.stringify({ ok: true, stats: { blocked: blockedCount ?? 0, activities: activitiesCount ?? 0 } }),
+        JSON.stringify({ ok: true, stats: { blocked: blockedCount ?? 0, activities: activitiesCount ?? 0, users: usersCount ?? 0, complaints: complaintsCount ?? 0 } }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

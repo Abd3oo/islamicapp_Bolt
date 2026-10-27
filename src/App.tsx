@@ -1,18 +1,22 @@
 import { useState, useEffect } from 'react';
 import Layout, { type Page } from './components/Layout';
 import BlockedScreen from './components/BlockedScreen';
+import { AuthProvider, useAuth } from './lib/auth';
 import Home from './pages/Home';
 import Hadith from './pages/Hadith';
 import Scanner from './pages/Scanner';
 import Admin from './pages/Admin';
+import Login from './pages/Login';
+import SignUp from './pages/SignUp';
 import { checkBlockedStatus } from './lib/admin';
 
 type BlockState = 'checking' | 'blocked' | 'ok';
 
-export default function App() {
+function AppContent() {
   const [page, setPage] = useState<Page>('home');
   const [blockState, setBlockState] = useState<BlockState>('checking');
   const [blockReason, setBlockReason] = useState<string | null>(null);
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
     let cancelled = false;
@@ -34,7 +38,7 @@ export default function App() {
     };
   }, []);
 
-  if (blockState === 'checking') {
+  if (blockState === 'checking' || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-ink-950">
         <div className="w-10 h-10 border-2 border-sky-400/30 border-t-sky-400 rounded-full animate-spin" />
@@ -52,6 +56,16 @@ export default function App() {
       {page === 'hadith' && <Hadith />}
       {page === 'scanner' && <Scanner />}
       {page === 'admin' && <Admin onExit={() => setPage('home')} />}
+      {page === 'login' && <Login onNavigate={() => setPage('signup')} onBack={() => setPage('home')} />}
+      {page === 'signup' && <SignUp onNavigate={() => setPage('login')} onBack={() => setPage('home')} />}
     </Layout>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }

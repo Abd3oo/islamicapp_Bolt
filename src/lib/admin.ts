@@ -103,11 +103,45 @@ export async function listActivities(token: string, limit = 200, offset = 0): Pr
   return data.activities ?? [];
 }
 
-export async function getStats(token: string): Promise<{ blocked: number; activities: number }> {
+export async function getStats(token: string): Promise<{ blocked: number; activities: number; users: number; complaints: number }> {
   const res = await fetch(`${ADMIN_API_URL}/stats`, {
     headers: adminHeaders(token),
   });
   const data = await res.json();
   if (!res.ok || !data.ok) throw new Error(data?.error ?? 'فشل قراءة الإحصائيات');
-  return data.stats ?? { blocked: 0, activities: 0 };
+  return data.stats ?? { blocked: 0, activities: 0, users: 0, complaints: 0 };
+}
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  created_at: string;
+  last_sign_in_at: string | null;
+}
+
+export interface Complaint {
+  id: string;
+  message: string;
+  page: string | null;
+  email: string | null;
+  status: string | null;
+  created_at: string;
+}
+
+export async function listUsers(token: string): Promise<AdminUser[]> {
+  const res = await fetch(`${ADMIN_API_URL}/users`, {
+    headers: adminHeaders(token),
+  });
+  const data = await res.json();
+  if (!res.ok || !data.ok) throw new Error(data?.error ?? 'فشل قراءة المستخدمين');
+  return data.users ?? [];
+}
+
+export async function listComplaints(token: string, limit = 200, offset = 0): Promise<Complaint[]> {
+  const res = await fetch(`${ADMIN_API_URL}/complaints?limit=${limit}&offset=${offset}`, {
+    headers: adminHeaders(token),
+  });
+  const data = await res.json();
+  if (!res.ok || !data.ok) throw new Error(data?.error ?? 'فشل قراءة الشكاوى');
+  return data.complaints ?? [];
 }
