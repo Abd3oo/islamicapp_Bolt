@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Star, BookOpen, ScanLine, Home, AlertTriangle, Shield, LogIn, LogOut, User } from 'lucide-react';
+import { Star, BookOpen, ScanLine, Home, AlertTriangle, Shield, LogIn, LogOut, User, MapPin, ChevronDown } from 'lucide-react';
 import ProblemModal from './ProblemModal';
 import { useAuth } from '../lib/auth';
+import { COUNTRIES, type Country } from '../lib/alternatives';
 
 export type Page = 'home' | 'hadith' | 'scanner' | 'admin' | 'login' | 'signup';
 
 interface LayoutProps {
   currentPage: Page;
   onNavigate: (page: Page) => void;
+  country: Country;
+  onCountryChange: (c: Country) => void;
   children: React.ReactNode;
 }
 
@@ -25,10 +28,11 @@ const stars = Array.from({ length: 28 }, (_, i) => ({
   delay: `${(i % 5) * 0.6}s`,
 }));
 
-export default function Layout({ currentPage, onNavigate, children }: LayoutProps) {
+export default function Layout({ currentPage, onNavigate, country, onCountryChange, children }: LayoutProps) {
   const { user, signOut } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [problemOpen, setProblemOpen] = useState(false);
+  const [countryOpen, setCountryOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -112,6 +116,40 @@ export default function Layout({ currentPage, onNavigate, children }: LayoutProp
                 <span className="hidden sm:inline">مشكلة</span>
               </button>
             </nav>
+
+            <div className="relative">
+              <button
+                onClick={() => setCountryOpen((v) => !v)}
+                className="inline-flex items-center gap-1.5 glass text-slate-200 hover:text-sky-300 font-medium px-3 py-2 rounded-2xl hover:bg-white/10 transition-colors text-sm"
+                aria-label="اختر دولتك"
+              >
+                <MapPin className="w-4 h-4 text-sky-300" />
+                <span className="hidden sm:inline max-w-[90px] truncate">{country}</span>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${countryOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {countryOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setCountryOpen(false)} />
+                  <div className="absolute left-0 mt-2 w-48 max-h-72 overflow-y-auto glass-strong rounded-2xl shadow-2xl shadow-black/40 z-50 p-1.5">
+                    {COUNTRIES.map((c) => (
+                      <button
+                        key={c}
+                        onClick={() => {
+                          onCountryChange(c);
+                          setCountryOpen(false);
+                        }}
+                        className={`w-full text-right px-3 py-2 rounded-xl text-sm transition-colors flex items-center gap-2 ${
+                          c === country ? 'bg-gradient-to-br from-navy-500 to-navy-700 text-white' : 'text-slate-300 hover:text-white hover:bg-white/5'
+                        }`}
+                      >
+                        <MapPin className="w-3.5 h-3.5 opacity-70" />
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
 
             {user ? (
               <div className="flex items-center gap-2">

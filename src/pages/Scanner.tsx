@@ -9,6 +9,7 @@ import { findLocalProduct } from '../lib/products';
 import ReportModal from '../components/ReportModal';
 import { supabase } from '../lib/gemini';
 import { useAuth } from '../lib/auth';
+import { getCountryAlternatives, categoryLabel, type Country, type ProductCategory } from '../lib/alternatives';
 
 type Verdict = 'boycott' | 'not_boycotted' | 'local' | 'unknown';
 
@@ -72,7 +73,7 @@ function toVerdict(s: string): Verdict {
   return 'unknown';
 }
 
-export default function Scanner() {
+export default function Scanner({ country }: { country: Country }) {
   const [state, setState] = useState<ScanState>({ status: 'idle' });
   const [cameraActive, setCameraActive] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -541,31 +542,58 @@ export default function Scanner() {
           )}
 
           {/* Alternatives section — only for boycotted products */}
-          {isBoycott && hasAlternatives && !state.error && (
+          {isBoycott && !state.error && (
             <div className="rounded-3xl p-6 border border-emerald-500/30 bg-emerald-500/5 shadow-lg shadow-emerald-500/10">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-300 flex items-center justify-center">
                   <Lightbulb className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-emerald-300">البدائل المحلية المتاحة</h3>
-                  <p className="text-slate-400 text-xs">بدائل عربية/محلية لنفس نوع المنتج</p>
+                  <h3 className="font-extrabold text-emerald-300">البدائل المحلية في {country}</h3>
+                  <p className="text-slate-400 text-xs">بدائل عربية/محلية مصنّفة حسب النوع لدولتك</p>
                 </div>
               </div>
-              <div className="grid sm:grid-cols-2 gap-3">
-                {state.alternatives!.map((alt, i) => (
-                  <div
-                    key={`${alt}-${i}`}
-                    className="flex items-center gap-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 px-4 py-3 animate-slide-up"
-                    style={{ animationDelay: `${i * 80}ms` }}
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center flex-shrink-0">
-                      <CheckCircle2 className="w-4 h-4" />
+              <div className="space-y-4">
+                {getCountryAlternatives(country).map((group) => (
+                  <div key={group.category}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-[11px] font-bold text-emerald-200/80 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-2.5 py-0.5">
+                        {categoryLabel(group.category)}
+                      </span>
                     </div>
-                    <span className="text-slate-100 text-sm font-medium">{alt}</span>
+                    <div className="grid sm:grid-cols-2 gap-2">
+                      {group.brands.map((alt, i) => (
+                        <div
+                          key={`${group.category}-${alt}-${i}`}
+                          className="flex items-center gap-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 px-3.5 py-2.5"
+                        >
+                          <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center flex-shrink-0">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                          </div>
+                          <span className="text-slate-100 text-sm font-medium">{alt}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ))}
               </div>
+
+              {hasAlternatives && (
+                <div className="mt-5 pt-4 border-t border-emerald-500/20">
+                  <p className="text-xs text-slate-400 mb-2">بدائل مقترحة من قاعدة بيانات المنتج:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {state.alternatives!.map((alt, i) => (
+                      <span
+                        key={`alt-${i}`}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-white/5 border border-white/10 px-3 py-1 text-xs text-slate-200"
+                      >
+                        <Sparkles className="w-3 h-3 text-emerald-300" />
+                        {alt}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

@@ -3,6 +3,7 @@ import Layout, { type Page } from './components/Layout';
 import BlockedScreen from './components/BlockedScreen';
 import { AuthProvider, useAuth } from './lib/auth';
 import { Shield } from 'lucide-react';
+import type { Country } from './lib/alternatives';
 import Home from './pages/Home';
 import Hadith from './pages/Hadith';
 import Scanner from './pages/Scanner';
@@ -19,6 +20,7 @@ function AppContent() {
   const [blockReason, setBlockReason] = useState<string | null>(null);
   const { user, loading: authLoading } = useAuth();
   const isAdmin = user?.email === 'abdelrhmanofficial11@gmail.com';
+  const [country, setCountry] = useState<Country>('مصر');
 
   useEffect(() => {
     let cancelled = false;
@@ -53,10 +55,10 @@ function AppContent() {
   }
 
   return (
-    <Layout currentPage={page} onNavigate={setPage}>
+    <Layout currentPage={page} onNavigate={setPage} country={country} onCountryChange={setCountry}>
       {page === 'home' && <Home onNavigate={setPage} />}
       {page === 'hadith' && <Hadith />}
-      {page === 'scanner' && <Scanner />}
+      {page === 'scanner' && <Scanner country={country} />}
       {page === 'admin' && isAdmin && <Admin onExit={() => setPage('home')} />}
       {page === 'admin' && !isAdmin && (
         <div className="min-h-[60vh] flex items-center justify-center">
