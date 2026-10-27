@@ -8,13 +8,13 @@
 // Robustness: tries multiple Gemini models in order, with per-request timeout,
 // so a single model being overloaded or deprecated doesn't break the app.
 
+import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
-
-import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 
 function getClientIp(req: Request): string {
   const fwd = req.headers.get("x-forwarded-for");
@@ -26,9 +26,14 @@ async function isIpBlocked(ip: string): Promise<boolean> {
   const url = Deno.env.get("SUPABASE_URL") ?? "";
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
   if (!url || !serviceKey) return false;
-  const sb = createClient(url, serviceKey, { auth: { persistSession: false } });
-  const { data } = await sb.from("blocked_ips").select("ip").eq("ip", ip).maybeSingle();
-  return !!data;
+  try {
+    const sb = createClient(url, serviceKey, { auth: { persistSession: false } });
+    const { data } = await sb.from("blocked_ips").select("ip").eq("ip", ip).maybeSingle();
+    return !!data;
+  } catch {
+    // If the block-check itself fails, fail open (don't block legitimate users)
+    return false;
+  }
 }
 
 // Heuristic patterns for injection / XSS attempts in text inputs.

@@ -1,13 +1,13 @@
 {
   "projectId": "72368968",
   "functions": {
-    "gemini-proxy": {
-      "hasChanged": false,
-      "hash": "4644495264eb32acaa6c0767c21de51dd26ef2b051ac35020b9196c4675781c3"
-    },
     "admin-api": {
       "hasChanged": false,
       "hash": "ae7b4264548572d6b9a2354fa9c61363595fe42f1b3cdff80446387ad7936dc0"
+    },
+    "gemini-proxy": {
+      "hasChanged": false,
+      "hash": "7b9b28fa264e636f8ed695f47fcbfa7205c2af0cdec525a9ae45200d70bd63a3"
     }
   }
 }
