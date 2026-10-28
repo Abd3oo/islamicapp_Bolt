@@ -546,6 +546,7 @@ export default function Scanner({ country }: { country: Country }) {
           {isBoycott && !state.error && (() => {
             const cat = detectCategory(state.brand ?? '');
             const alts = getCountryCategoryAlternativesMerged(country, cat);
+            if (alts.length === 0) return null;
             return (
             <div className="rounded-3xl p-6 border border-emerald-500/30 bg-emerald-500/5 shadow-lg shadow-emerald-500/10">
               <div className="flex items-center gap-2 mb-4">
