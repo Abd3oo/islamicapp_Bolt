@@ -403,3 +403,31 @@ export function getCountryCategoryAlternatives(
   const general = groups.find((g) => g.category === 'general');
   return general?.brands ?? ['منتج محلي بديل'];
 }
+
+// DB-merged lookup: combines hard-coded alternatives with admin-managed ones.
+let dbAlternatives: { country: string; category: string; brand_name: string }[] = [];
+let dbFetched = false;
+
+export async function loadDbAlternatives(): Promise<void> {
+  if (dbFetched) return;
+  try {
+    const { fetchPublicAlternatives } = await import('./admin');
+    const rows = await fetchPublicAlternatives();
+    dbAlternatives = rows.map((r) => ({ country: r.country, category: r.category, brand_name: r.brand_name }));
+    dbFetched = true;
+  } catch {
+    dbFetched = true;
+  }
+}
+
+export function getCountryCategoryAlternativesMerged(
+  country: Country,
+  category: ProductCategory
+): string[] {
+  const hardcoded = getCountryCategoryAlternatives(country, category);
+  const dbMatches = dbAlternatives
+    .filter((r) => r.country === country && r.category === category)
+    .map((r) => r.brand_name);
+  const combined = [...new Set([...hardcoded, ...dbMatches])];
+  return combined;
+}

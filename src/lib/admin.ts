@@ -145,3 +145,55 @@ export async function listComplaints(token: string, limit = 200, offset = 0): Pr
   if (!res.ok || !data.ok) throw new Error(data?.error ?? 'فشل قراءة الشكاوى');
   return data.complaints ?? [];
 }
+
+export interface LocalAlternative {
+  id: string;
+  country: string;
+  category: string;
+  brand_name: string;
+  created_at: string;
+}
+
+export async function listAlternatives(token: string): Promise<LocalAlternative[]> {
+  const res = await fetch(`${ADMIN_API_URL}/alternatives`, {
+    headers: adminHeaders(token),
+  });
+  const data = await res.json();
+  if (!res.ok || !data.ok) throw new Error(data?.error ?? 'فشل قراءة البدائل');
+  return data.alternatives ?? [];
+}
+
+export async function addAlternative(token: string, country: string, category: string, brandName: string): Promise<void> {
+  const res = await fetch(`${ADMIN_API_URL}/alternatives`, {
+    method: 'POST',
+    headers: adminHeaders(token),
+    body: JSON.stringify({ country, category, brandName }),
+  });
+  const data = await res.json();
+  if (!res.ok || !data.ok) throw new Error(data?.error ?? 'فشل إضافة المنتج');
+}
+
+export async function deleteAlternative(token: string, id: string): Promise<void> {
+  const res = await fetch(`${ADMIN_API_URL}/alternatives`, {
+    method: 'DELETE',
+    headers: adminHeaders(token),
+    body: JSON.stringify({ id }),
+  });
+  const data = await res.json();
+  if (!res.ok || !data.ok) throw new Error(data?.error ?? 'فشل حذف المنتج');
+}
+
+export async function fetchPublicAlternatives(): Promise<LocalAlternative[]> {
+  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+  const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-api/alternatives`, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      apikey: SUPABASE_ANON_KEY,
+    },
+  });
+  if (!res.ok) return [];
+  const data = await res.json();
+  return data.alternatives ?? [];
+}

@@ -183,6 +183,49 @@ async function listUsers(): Promise<Response> {
   });
 }
 
+// --- Local alternatives CRUD ---
+async function listAlternatives(): Promise<Response> {
+  const sb = adminClient();
+  const { data, error } = await sb
+    .from("local_alternatives")
+    .select("*")
+    .order("country", { ascending: true })
+    .order("category", { ascending: true })
+    .order("brand_name", { ascending: true });
+  if (error) return adminError(500, "تعذّر قراءة البدائل المحلية");
+  return new Response(JSON.stringify({ ok: true, alternatives: data ?? [] }), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+async function addAlternative(body: { country?: string; category?: string; brandName?: string }): Promise<Response> {
+  const country = (body?.country ?? "").trim();
+  const category = (body?.category ?? "").trim();
+  const brandName = (body?.brandName ?? "").trim();
+  if (!country || !category || !brandName) {
+    return adminError(400, "الدولة والتصنيف واسم المنتج مطلوبة");
+  }
+  const sb = adminClient();
+  const { error } = await sb.from("local_alternatives").upsert(
+    { country, category, brand_name: brandName },
+    { onConflict: "country,category,brand_name" }
+  );
+  if (error) return adminError(500, "تعذّر إضافة المنتج");
+  return new Response(JSON.stringify({ ok: true }), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+async function deleteAlternative(id: string): Promise<Response> {
+  if (!id) return adminError(400, "المعرّف مطلوب");
+  const sb = adminClient();
+  const { error } = await sb.from("local_alternatives").delete().eq("id", id);
+  if (error) return adminError(500, "تعذّر حذف المنتج");
+  return new Response(JSON.stringify({ ok: true }), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 // --- List user complaints (issue_reports) ---
 async function listComplaints(limit: number, offset: number): Promise<Response> {
   const sb = adminClient();
@@ -245,6 +288,19 @@ Deno.serve(async (req: Request) => {
       const limit = parseInt(url.searchParams.get("limit") ?? "200", 10);
       const offset = parseInt(url.searchParams.get("offset") ?? "0", 10);
       return await listActivities(limit, offset);
+    }
+
+    if (path === "alternatives" || path === "/alternatives") {
+      if (req.method === "GET") return await listAlternatives();
+      if (req.method === "POST") {
+        const body = await req.json();
+        return await addAlternative(body);
+      }
+      if (req.method === "DELETE") {
+        const body = await req.json();
+        return await deleteAlternative(body?.id ?? "");
+      }
+      return adminError(405, "Method not allowed");
     }
 
     if (path === "users" || path === "/users") {

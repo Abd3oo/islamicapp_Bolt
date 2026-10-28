@@ -9,7 +9,7 @@ import { findLocalProduct } from '../lib/products';
 import ReportModal from '../components/ReportModal';
 import { supabase } from '../lib/gemini';
 import { useAuth } from '../lib/auth';
-import { getCountryCategoryAlternatives, detectCategory, categoryLabel, type Country } from '../lib/alternatives';
+import { getCountryCategoryAlternativesMerged, detectCategory, categoryLabel, loadDbAlternatives, type Country } from '../lib/alternatives';
 
 type Verdict = 'boycott' | 'not_boycotted' | 'local' | 'unknown';
 
@@ -114,6 +114,7 @@ export default function Scanner({ country }: { country: Country }) {
 
   useEffect(() => {
     loadHistory();
+    loadDbAlternatives();
   }, [loadHistory]);
 
   const saveScan = async (s: ScanState) => {
@@ -544,7 +545,7 @@ export default function Scanner({ country }: { country: Country }) {
           {/* Alternatives section — only for boycotted products */}
           {isBoycott && !state.error && (() => {
             const cat = detectCategory(state.brand ?? '');
-            const alts = getCountryCategoryAlternatives(country, cat);
+            const alts = getCountryCategoryAlternativesMerged(country, cat);
             return (
             <div className="rounded-3xl p-6 border border-emerald-500/30 bg-emerald-500/5 shadow-lg shadow-emerald-500/10">
               <div className="flex items-center gap-2 mb-4">

@@ -2,16 +2,36 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   Shield, ShieldX, Lock, Loader2, AlertTriangle, Ban, Search, RefreshCw,
   Trash2, ArrowLeft, Activity, Eye, EyeOff, ChevronLeft, Users, MessageSquare, User,
+  Plus, Package, Tag, Globe,
 } from 'lucide-react';
 import {
   adminLogin, adminLogout, listBlockedIps, blockIp, unblockIp,
   listActivities, getStats, listUsers, listComplaints,
+  listAlternatives, addAlternative, deleteAlternative,
   type BlockedIp, type SuspiciousActivity, type AdminUser, type Complaint,
+  type LocalAlternative,
 } from '../lib/admin';
+import { COUNTRIES, categoryLabel, type ProductCategory } from '../lib/alternatives';
 
 const TOKEN_KEY = 'najma_admin_token';
 
-type Tab = 'overview' | 'activities' | 'blacklist' | 'users' | 'complaints';
+type Tab = 'overview' | 'activities' | 'blacklist' | 'users' | 'complaints' | 'alternatives';
+
+const CATEGORY_OPTIONS: { value: ProductCategory; label: string }[] = [
+  { value: 'beverages', label: 'مشروبات غازية وعصائر' },
+  { value: 'snacks', label: 'شيبس وسناكس' },
+  { value: 'fast_food', label: 'وجبات سريعة ومطاعم' },
+  { value: 'coffee', label: 'قهوة ومرطبات ساخنة' },
+  { value: 'dairy', label: 'ألبان وأجبان' },
+  { value: 'chocolate', label: 'شوكولاتة وحلويات' },
+  { value: 'personal_care', label: 'عناية شخصية' },
+  { value: 'household', label: 'منظفات منزلية' },
+  { value: 'apparel', label: 'ملابس وأحذية' },
+  { value: 'tech', label: 'تكنولوجيا وأجهزة' },
+  { value: 'insurance', label: 'تأمين' },
+  { value: 'retail', label: 'أسواق ومتاجر' },
+  { value: 'general', label: 'بدائل عامة' },
+];
 
 export default function Admin({ onExit }: { onExit: () => void }) {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY));
