@@ -405,13 +405,14 @@ export function getCountryCategoryAlternatives(
 }
 
 // DB-merged lookup: combines hard-coded alternatives with admin-managed ones.
+import { fetchPublicAlternatives } from './admin';
+
 let dbAlternatives: { country: string; category: string; brand_name: string }[] = [];
 let dbFetched = false;
 
 export async function loadDbAlternatives(): Promise<void> {
   if (dbFetched) return;
   try {
-import { fetchPublicAlternatives } from './admin';
     const rows = await fetchPublicAlternatives();
     dbAlternatives = rows.map((r) => ({ country: r.country, category: r.category, brand_name: r.brand_name }));
     dbFetched = true;

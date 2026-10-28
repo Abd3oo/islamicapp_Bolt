@@ -256,6 +256,11 @@ Deno.serve(async (req: Request) => {
       return await checkBlocked(ip);
     }
 
+    // Public read of local alternatives (Scanner needs these without admin login)
+    if (path === "alternatives" || path === "/alternatives") {
+      if (req.method === "GET") return await listAlternatives();
+    }
+
     // Login route
     if (path === "login" || path === "/login") {
       if (req.method !== "POST") return adminError(405, "Method not allowed");
