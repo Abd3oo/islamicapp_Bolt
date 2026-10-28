@@ -405,19 +405,19 @@ export function getCountryCategoryAlternatives(
 }
 
 // DB-merged lookup: combines hard-coded alternatives with admin-managed ones.
-import { fetchPublicAlternatives } from './admin';
+import { supabase } from './gemini';
 
 let dbAlternatives: { country: string; category: string; brand_name: string }[] = [];
-let dbFetched = false;
 
 export async function loadDbAlternatives(): Promise<void> {
-  if (dbFetched) return;
   try {
-    const rows = await fetchPublicAlternatives();
-    dbAlternatives = rows.map((r) => ({ country: r.country, category: r.category, brand_name: r.brand_name }));
-    dbFetched = true;
+    const { data, error } = await supabase
+      .from('local_alternatives')
+      .select('country, category, brand_name');
+    if (error) throw error;
+    dbAlternatives = (data ?? []).map((r) => ({ country: r.country, category: r.category, brand_name: r.brand_name }));
   } catch {
-    dbFetched = true;
+    // keep whatever we have (possibly empty) — hard-coded list still works
   }
 }
 
