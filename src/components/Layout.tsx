@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Star, BookOpen, ScanLine, Home, AlertTriangle, Shield, LogIn, LogOut, User, MapPin, ChevronDown } from 'lucide-react';
+import { Star, BookOpen, ScanLine, Home, AlertTriangle, Shield, LogIn, LogOut, User, MapPin, ChevronDown, UserCircle } from 'lucide-react';
 import ProblemModal from './ProblemModal';
 import { useAuth } from '../lib/auth';
 import { COUNTRIES, type Country } from '../lib/alternatives';
 
-export type Page = 'home' | 'hadith' | 'scanner' | 'admin' | 'login' | 'signup';
+export type Page = 'home' | 'hadith' | 'scanner' | 'admin' | 'login' | 'signup' | 'account';
 
 interface LayoutProps {
   currentPage: Page;
@@ -157,6 +157,14 @@ export default function Layout({ currentPage, onNavigate, country, onCountryChan
                   <User className="w-4 h-4" />
                   <span className="max-w-[140px] truncate" dir="ltr">{user.email}</span>
                 </span>
+                <button
+                  onClick={() => onNavigate('account')}
+                  title="حسابي"
+                  className="inline-flex items-center justify-center glass text-slate-300 hover:text-sky-300 w-9 h-9 rounded-2xl hover:bg-white/10 transition-colors"
+                  aria-label="حسابي"
+                >
+                  <UserCircle className="w-4 h-4" />
+                </button>
                 <button
                   onClick={() => signOut()}
                   title="تسجيل الخروج"

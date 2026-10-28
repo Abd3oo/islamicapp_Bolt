@@ -576,22 +576,6 @@ export default function Scanner({ country }: { country: Country }) {
                 ))}
               </div>
 
-              {hasAlternatives && (
-                <div className="mt-5 pt-4 border-t border-emerald-500/20">
-                  <p className="text-xs text-slate-400 mb-2">بدائل إضافية مقترحة:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {state.alternatives!.map((alt, i) => (
-                      <span
-                        key={`alt-${i}`}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-white/5 border border-white/10 px-3 py-1 text-xs text-slate-200"
-                      >
-                        <Sparkles className="w-3 h-3 text-emerald-300" />
-                        {alt}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
             );
           })()}

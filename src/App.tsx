@@ -10,6 +10,7 @@ import Scanner from './pages/Scanner';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
+import Account from './pages/Account';
 import { checkBlockedStatus } from './lib/admin';
 
 type BlockState = 'checking' | 'blocked' | 'ok';
@@ -79,6 +80,7 @@ function AppContent() {
       )}
       {page === 'login' && <Login onNavigate={() => setPage('signup')} onBack={() => setPage('home')} />}
       {page === 'signup' && <SignUp onNavigate={() => setPage('login')} onBack={() => setPage('home')} />}
+      {page === 'account' && <Account onBack={() => setPage('home')} />}
     </Layout>
   );
 }
