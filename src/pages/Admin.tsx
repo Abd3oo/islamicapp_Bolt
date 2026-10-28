@@ -49,6 +49,58 @@ export default function Admin({ onExit }: { onExit: () => void }) {
   const [loading, setLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [searchIp, setSearchIp] = useState('');
+  const [alternatives, setAlternatives] = useState<LocalAlternative[]>([]);
+  const [altLoading, setAltLoading] = useState(false);
+  const [altError, setAltError] = useState<string | null>(null);
+  const [altCountry, setAltCountry] = useState<string>('مصر');
+  const [altCategory, setAltCategory] = useState<string>('beverages');
+  const [altBrand, setAltBrand] = useState('');
+  const [altAdding, setAltAdding] = useState(false);
+
+  const refreshAlternatives = useCallback(async () => {
+    if (!token) return;
+    setAltLoading(true);
+    setAltError(null);
+    try {
+      const data = await listAlternatives(token);
+      setAlternatives(data);
+    } catch (err) {
+      setAltError(err instanceof Error ? err.message : 'فشل تحميل البدائل');
+    } finally {
+      setAltLoading(false);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (token && tab === 'alternatives') refreshAlternatives();
+  }, [token, tab, refreshAlternatives]);
+
+  const handleAddAlternative = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token || !altBrand.trim()) return;
+    setAltAdding(true);
+    setAltError(null);
+    try {
+      await addAlternative(token, altCountry, altCategory, altBrand.trim());
+      setAltBrand('');
+      await refreshAlternatives();
+    } catch (err) {
+      setAltError(err instanceof Error ? err.message : 'فشل إضافة المنتج');
+    } finally {
+      setAltAdding(false);
+    }
+  };
+
+  const handleDeleteAlternative = async (id: string) => {
+    if (!token) return;
+    setAltError(null);
+    try {
+      await deleteAlternative(token, id);
+      setAlternatives((prev) => prev.filter((a) => a.id !== id));
+    } catch (err) {
+      setAltError(err instanceof Error ? err.message : 'فشل حذف المنتج');
+    }
+  };
 
   const refresh = useCallback(async () => {
     if (!token) return;
@@ -254,6 +306,7 @@ export default function Admin({ onExit }: { onExit: () => void }) {
           { id: 'blacklist', label: 'قائمة الحظر', icon: Ban },
           { id: 'users', label: 'المستخدمون', icon: Users },
           { id: 'complaints', label: 'الشكاوى', icon: MessageSquare },
+          { id: 'alternatives', label: 'بدائل محلية', icon: Package },
         ] as { id: Tab; label: string; icon: typeof Activity }[]).map((t) => {
           const Icon = t.icon;
           const active = tab === t.id;
@@ -283,7 +336,7 @@ export default function Admin({ onExit }: { onExit: () => void }) {
             type="text"
             value={searchIp}
             onChange={(e) => setSearchIp(e.target.value)}
-            placeholder={tab === 'users' ? 'بحث بالإيميل...' : tab === 'complaints' ? 'بحث في الشكاوى...' : 'بحث بعنوان IP...'}
+            placeholder={tab === 'users' ? 'بحث بالإيميل...' : tab === 'complaints' ? 'بحث في الشكاوى...' : tab === 'alternatives' ? 'بحث في المنتجات...' : 'بحث بعنوان IP...'}
             className="w-full bg-ink-900/60 border border-white/10 rounded-2xl pr-9 pl-4 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-navy-400/60 focus:border-transparent transition-all text-sm"
             dir="ltr"
           />
@@ -564,6 +617,129 @@ export default function Admin({ onExit }: { onExit: () => void }) {
                   ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Alternatives tab */}
+      {tab === 'alternatives' && (
+        <div className="space-y-5">
+          {altError && (
+            <div className="bg-rose-500/10 border border-rose-500/30 rounded-2xl p-3 flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
+              <p className="text-rose-300 text-sm">{altError}</p>
+            </div>
+          )}
+
+          {/* Add form */}
+          <div className="glass rounded-3xl p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Plus className="w-5 h-5 text-emerald-300" />
+              <h3 className="font-bold text-white">إضافة منتج محلي بديل</h3>
+            </div>
+            <form onSubmit={handleAddAlternative} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div>
+                <label className="block text-slate-400 text-xs mb-1.5">الدولة</label>
+                <div className="relative">
+                  <Globe className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <select
+                    value={altCountry}
+                    onChange={(e) => setAltCountry(e.target.value)}
+                    className="w-full bg-ink-900/60 border border-white/10 rounded-2xl pr-9 pl-4 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-navy-400/60 focus:border-transparent transition-all text-sm appearance-none"
+                  >
+                    {COUNTRIES.map((c) => (
+                      <option key={c} value={c} className="bg-ink-900 text-slate-100">{c}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-slate-400 text-xs mb-1.5">التصنيف</label>
+                <div className="relative">
+                  <Tag className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <select
+                    value={altCategory}
+                    onChange={(e) => setAltCategory(e.target.value)}
+                    className="w-full bg-ink-900/60 border border-white/10 rounded-2xl pr-9 pl-4 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-navy-400/60 focus:border-transparent transition-all text-sm appearance-none"
+                  >
+                    {CATEGORY_OPTIONS.map((c) => (
+                      <option key={c.value} value={c.value} className="bg-ink-900 text-slate-100">{c.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="lg:col-span-2">
+                <label className="block text-slate-400 text-xs mb-1.5">اسم المنتج / العلامة</label>
+                <input
+                  type="text"
+                  value={altBrand}
+                  onChange={(e) => setAltBrand(e.target.value)}
+                  placeholder="مثال: جهينة، المراعي، شيبس محلي..."
+                  className="w-full bg-ink-900/60 border border-white/10 rounded-2xl px-4 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-navy-400/60 focus:border-transparent transition-all text-sm"
+                />
+              </div>
+              <div className="lg:col-span-4 flex justify-end">
+                <button
+                  type="submit"
+                  disabled={!altBrand.trim() || altAdding}
+                  className="inline-flex items-center justify-center gap-2 bg-gradient-to-br from-emerald-500 to-emerald-700 text-white font-bold px-5 py-2.5 rounded-2xl hover:shadow-lg hover:shadow-emerald-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                >
+                  {altAdding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                  إضافة
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* List grouped by country + category */}
+          <div className="glass rounded-3xl overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-white/10 text-slate-400">
+                    <th className="text-right py-3 px-4 font-medium">الدولة</th>
+                    <th className="text-right py-3 px-4 font-medium">التصنيف</th>
+                    <th className="text-right py-3 px-4 font-medium">المنتج</th>
+                    <th className="text-center py-3 px-4 font-medium">إجراء</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {alternatives.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="text-center py-10 text-slate-500">
+                        {altLoading ? 'جارٍ التحميل...' : 'لا توجد منتجات مضافة بعد. أضف أول منتج أعلاه.'}
+                      </td>
+                    </tr>
+                  )}
+                  {alternatives
+                    .filter((a) => {
+                      if (!searchIp.trim()) return true;
+                      const q = searchIp.trim();
+                      return a.country.includes(q) || a.category.includes(q) || a.brand_name.includes(q);
+                    })
+                    .map((a) => (
+                      <tr key={a.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                        <td className="py-3 px-4 text-slate-200">{a.country}</td>
+                        <td className="py-3 px-4">
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg border bg-navy-500/10 border-navy-500/30 text-navy-200 text-xs font-medium">
+                            {categoryLabel(a.category as ProductCategory)}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-slate-200 font-medium">{a.brand_name}</td>
+                        <td className="py-3 px-4 text-center">
+                          <button
+                            onClick={() => handleDeleteAlternative(a.id)}
+                            className="inline-flex items-center gap-1 bg-rose-500/10 text-rose-300 border border-rose-500/30 px-2.5 py-1.5 rounded-lg hover:bg-rose-500/20 transition-colors text-xs font-medium"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            حذف
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

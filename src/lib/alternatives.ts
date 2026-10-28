@@ -411,7 +411,7 @@ let dbFetched = false;
 export async function loadDbAlternatives(): Promise<void> {
   if (dbFetched) return;
   try {
-    const { fetchPublicAlternatives } = await import('./admin');
+import { fetchPublicAlternatives } from './admin';
     const rows = await fetchPublicAlternatives();
     dbAlternatives = rows.map((r) => ({ country: r.country, category: r.category, brand_name: r.brand_name }));
     dbFetched = true;
