@@ -66,7 +66,7 @@ export function categoryLabel(cat: ProductCategory): string {
 const KEYWORDS: { category: ProductCategory; words: string[] }[] = [
   { category: 'beverages', words: ['كوكا', 'كولا', 'بيبسي', 'سبايت', 'فانتا', 'مشروب', 'عصير', 'مياه', 'غازية', 'صودا', 'soda', 'cola', 'pepsi', 'coca', 'sprite', 'fanta', 'juice', 'drink', 'سفن', '7up', 'دويتو', 'اكوافينا'] },
   { category: 'snacks', words: ['شيبس', 'شيبسي', 'chips', 'lays', 'ليز', 'دوريتو', 'doritos', 'cheetos', 'تشيتوس', 'سناك', 'snack', 'مكسرات', 'بريقلز', 'pringles', 'بوشار', 'popcorn'] },
-  { category: 'fast_food', words: ['مكدونالد', 'ماكدونالد', 'mcdonald', 'kfc', 'كنتاكي', 'بيتزا', 'pizza', 'برجر', 'burger', 'king', 'سابوي', 'subway', 'starbucks', 'ستاربكس', 'مطعم', 'كافيه', 'قهوة', 'شاورما', 'فلافل'] },
+  { category: 'fast_food', words: ['مكدونالد', 'ماكدونالد', 'mcdonald', 'kfc', 'كنتاكي', 'بيتزا', 'pizza', 'برجر', 'burger', 'king', 'سابوي', 'subway', 'starbucks', 'ستاربكس', 'مطعم', 'مطاعم', 'كافيه', 'كافي', 'قهوة', 'شاورما', 'فلافل', 'فود', 'food', 'دجاج', 'وجبات', 'ساندويتش', 'sandwich', 'هرفي', 'هارديز', 'hardee', 'هاردي', 'domino', 'دومينوز', 'wendy', 'وندي', 'تاكو', 'taco', 'نودلز', 'noodle', 'كباب', 'شيش', 'طعام', 'مأكولات', 'مطبخ', 'كنبة', 'فستفود', 'مقاهي', 'مقهى', 'بيك', 'الطازج', 'كشري', 'فول', 'طعمية'] },
   { category: 'coffee', words: ['نسكافيه', 'nescafe', 'ماغي', 'maggi', 'قهوة', 'coffee', 'cafe', 'ستاربكس', 'starbucks'] },
   { category: 'dairy', words: ['لبن', 'حليب', 'زبادي', 'ياغورت', 'جبن', 'جبنة', 'ألبان', 'danone', 'دانون', 'اكتيفيا', 'nestle', 'نستله', 'مراعي', 'لبنة', 'كريمه', 'كريمة', 'dairy', 'yogurt', 'milk', 'cheese'] },
   { category: 'chocolate', words: ['شوكولاتة', 'شوكولا', 'chocolate', 'كندر', 'kinder', 'فيريرو', 'ferrero', 'نوتيلا', 'nutella', 'توبلرون', 'toblerone', 'لينت', 'lindt', 'حلوى', 'حلاوة'] },
@@ -78,10 +78,39 @@ const KEYWORDS: { category: ProductCategory; words: string[] }[] = [
   { category: 'retail', words: ['كارفور', 'carrefour', 'امازون', 'amazon', 'ايكيا', 'ikea', 'سوق', 'هايبر', 'supermarket', 'بووكينج', 'booking', 'ايربي', 'airbnb'] },
 ];
 
+// Known brands mapped to categories — used as a fallback when the brand name
+// itself contains no keyword (e.g. a restaurant named after a person).
+const BRAND_CATEGORY: { category: ProductCategory; names: string[] }[] = [
+  { category: 'fast_food', names: ['mcdonald', 'starbucks', 'kfc', 'pizza hut', 'pizzahut', 'burger king', 'burgerking', 'subway', 'domino', 'wendy', 'هرفي', 'هارديز', 'هاردي', 'البيك', 'الطازج', 'كوك دور', 'سابرا', 'صابرا'] },
+  { category: 'beverages', names: ['coca', 'coca-cola', 'cocacola', 'pepsi', 'pepsico', 'sprite', 'fanta', 'sodastream', 'كوكاكولا', 'كوكا كولا', 'بيبسي', 'سبايت', 'سبرايت', 'فانتا'] },
+  { category: 'snacks', names: ['lays', "lay's", 'doritos', 'cheetos', 'pringles', 'ليز', 'دوريتو', 'تشيتوس', 'بريقلز', 'شيبسي', 'chipsy'] },
+  { category: 'dairy', names: ['danone', 'activia', 'دانون', 'اكتيفيا'] },
+  { category: 'coffee', names: ['nescafe', 'نسكافيه', 'نسكفيه', 'maggi', 'ماغي', 'ماجي', 'strauss', 'شتراوس'] },
+  { category: 'personal_care', names: ['loreal', "l'oreal", 'nivea', 'gillette', 'pampers', 'pantene', 'لوريال', 'نيفيا', 'جيليت', 'بابمرز', 'بانتين', 'ahava', 'أهافا'] },
+  { category: 'household', names: ['tide', 'ariel', 'تايد', 'اريال'] },
+  { category: 'apparel', names: ['puma', 'nike', 'adidas', 'zara', 'بوما', 'نايك', 'اديداس', 'زارا', 'tezenis', 'calzedonia', 'intimissimi'] },
+  { category: 'tech', names: ['hp', 'intel', 'microsoft', 'google', 'meta', 'aws', 'wix', 'samsung', 'lg', 'sony', 'elbit', 'bimax', 'انتل', 'مايكروسوفت', 'جوجل', 'ميتا', 'ويكس', 'سامسونج', 'سوني'] },
+  { category: 'insurance', names: ['axa', 'اكسا', 'أكسا'] },
+  { category: 'retail', names: ['carrefour', 'amazon', 'ikea', 'booking', 'airbnb', 'كارفور', 'امازون', 'ايكيا', 'بووكينج', 'ايربي'] },
+];
+
+function normalize(s: string): string {
+  return (s ?? '').toLowerCase().replace(/[^a-z0-9\u0600-\u06ff]/g, '');
+}
+
 export function detectCategory(brand: string): ProductCategory {
   const k = (brand ?? '').toLowerCase();
   for (const { category, words } of KEYWORDS) {
     if (words.some((w) => k.includes(w.toLowerCase()))) return category;
+  }
+  const nk = normalize(brand);
+  if (nk) {
+    for (const { category, names } of BRAND_CATEGORY) {
+      if (names.some((n) => {
+        const nn = normalize(n);
+        return nn && (nk.includes(nn) || nn.includes(nk));
+      })) return category;
+    }
   }
   return 'general';
 }
@@ -428,5 +457,7 @@ export function getCountryCategoryAlternativesMerged(
   const dbMatches = dbAlternatives
     .filter((r) => r.country === country && r.category === category)
     .map((r) => r.brand_name);
-  return dbMatches;
+  const hardcoded = getCountryCategoryAlternatives(country, category);
+  const merged = [...hardcoded, ...dbMatches];
+  return Array.from(new Set(merged));
 }
