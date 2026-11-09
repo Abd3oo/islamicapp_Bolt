@@ -28,7 +28,7 @@ export default function Home({ onNavigate }: HomeProps) {
   return (
     <div className="animate-fade-in">
       {/* Hero */}
-      <section className="relative overflow-hidden rounded-3xl glass-strong px-6 py-16 sm:px-12 sm:py-24 mb-8 glow-blue">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl glass-strong px-5 py-12 sm:px-12 sm:py-24 mb-8 glow-blue">
         <div className="absolute inset-0 opacity-40 pointer-events-none">
           <div className="absolute top-10 right-10 w-72 h-72 bg-sky-500/40 rounded-full blur-3xl animate-float" />
           <div className="absolute bottom-10 left-10 w-96 h-96 bg-navy-600/40 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
@@ -45,17 +45,17 @@ export default function Home({ onNavigate }: HomeProps) {
               </div>
             </div>
           </div>
-          <h1 className="text-5xl sm:text-7xl font-extrabold text-white leading-tight text-balance mb-4">
+          <h1 className="text-4xl sm:text-7xl font-extrabold text-white leading-tight text-balance mb-4">
             <span className="text-gradient">نجمة</span>
           </h1>
-          <p className="text-lg sm:text-xl text-slate-300 leading-relaxed mb-8 text-balance">
+          <p className="text-base sm:text-xl text-slate-300 leading-relaxed mb-8 text-balance">
             مرجعك الديني الذكي للتحقق من الأحاديث النبوية
             ومعرفة المنتجات المقاطعة — في ثوانٍ معدودة
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <button
               onClick={() => onNavigate('hadith')}
-              className="group inline-flex items-center gap-2 bg-gradient-to-br from-navy-500 to-navy-700 text-white font-bold px-6 py-3 rounded-2xl hover:shadow-xl hover:shadow-navy-500/40 transition-all hover:scale-105"
+              className="group inline-flex items-center gap-2 bg-gradient-to-br from-navy-500 to-navy-700 text-white font-bold px-5 py-3 sm:px-6 rounded-2xl hover:shadow-xl hover:shadow-navy-500/40 transition-all hover:scale-105 text-sm sm:text-base"
             >
               <BookOpen className="w-5 h-5" />
               ابدأ فحص الأحاديث
@@ -63,7 +63,7 @@ export default function Home({ onNavigate }: HomeProps) {
             </button>
             <button
               onClick={() => onNavigate('scanner')}
-              className="inline-flex items-center gap-2 glass text-white font-bold px-6 py-3 rounded-2xl hover:bg-white/10 transition-all"
+              className="inline-flex items-center gap-2 glass text-white font-bold px-5 py-3 sm:px-6 rounded-2xl hover:bg-white/10 transition-all text-sm sm:text-base"
             >
               <ScanLine className="w-5 h-5" />
               فحص المنتجات
@@ -73,7 +73,7 @@ export default function Home({ onNavigate }: HomeProps) {
       </section>
 
       {/* Palestine support banner */}
-      <section className="relative overflow-hidden rounded-3xl glass px-6 py-7 sm:px-8 mb-8 border-l-4 border-l-emerald-500">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl glass px-5 py-6 sm:px-8 mb-8 border-l-4 border-l-emerald-500">
         <div className="absolute top-0 left-0 w-1/3 h-1 bg-gradient-to-r from-black via-emerald-500 to-white" />
         <div className="flex flex-col sm:flex-row items-start gap-5">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center flex-shrink-0 shadow-lg shadow-emerald-500/30">
@@ -119,14 +119,14 @@ export default function Home({ onNavigate }: HomeProps) {
       </section>
 
       {/* Features */}
-      <section className="grid md:grid-cols-2 gap-6 mb-10">
+      <section className="grid sm:grid-cols-2 gap-4 sm:gap-6 mb-10">
         {features.map((f) => {
           const Icon = f.icon;
           return (
             <button
               key={f.page}
               onClick={() => onNavigate(f.page)}
-              className={`group text-right glass rounded-3xl p-7 hover:border-white/20 hover:shadow-2xl ${f.glow} transition-all hover:-translate-y-1`}
+              className={`group text-right glass rounded-2xl sm:rounded-3xl p-5 sm:p-7 hover:border-white/20 hover:shadow-2xl ${f.glow} transition-all hover:-translate-y-1`}
             >
               <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${f.accent} flex items-center justify-center shadow-lg mb-5 group-hover:scale-110 transition-transform`}>
                 <Icon className="w-7 h-7 text-white" />
@@ -143,7 +143,7 @@ export default function Home({ onNavigate }: HomeProps) {
       </section>
 
       {/* Trust banner */}
-      <section className="glass rounded-3xl p-7">
+      <section className="glass rounded-2xl sm:rounded-3xl p-5 sm:p-7">
         <div className="flex items-start gap-4">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-navy-500 to-navy-700 flex items-center justify-center flex-shrink-0">
             <ShieldCheck className="w-6 h-6 text-white" />

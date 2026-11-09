@@ -262,17 +262,17 @@ export default function Admin({ onExit }: { onExit: () => void }) {
   return (
     <div className="animate-fade-in">
       {/* Header bar */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-navy-500 to-sky-400 flex items-center justify-center shadow-lg shadow-navy-500/30">
+      <div className="flex items-center justify-between gap-3 mb-6 flex-wrap">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-navy-500 to-sky-400 flex items-center justify-center shadow-lg shadow-navy-500/30 flex-shrink-0">
             <Shield className="w-6 h-6 text-white" />
           </div>
-          <div>
-            <h1 className="text-xl font-extrabold text-white">لوحة الأمن والحظر</h1>
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-xl font-extrabold text-white">لوحة الأمن والحظر</h1>
             <p className="text-slate-400 text-xs">إدارة حماية الموقع وعناوين IP</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <button
             onClick={refresh}
             disabled={loading}

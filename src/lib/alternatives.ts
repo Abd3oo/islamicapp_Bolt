@@ -454,10 +454,7 @@ export function getCountryCategoryAlternativesMerged(
   country: Country,
   category: ProductCategory
 ): string[] {
-  const dbMatches = dbAlternatives
+  return dbAlternatives
     .filter((r) => r.country === country && r.category === category)
     .map((r) => r.brand_name);
-  const hardcoded = getCountryCategoryAlternatives(country, category);
-  const merged = [...hardcoded, ...dbMatches];
-  return Array.from(new Set(merged));
 }

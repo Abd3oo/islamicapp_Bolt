@@ -319,8 +319,8 @@ export default function Scanner({ country }: { country: Country }) {
         <div className="inline-flex w-16 h-16 rounded-2xl bg-gradient-to-br from-navy-500 to-sky-400 items-center justify-center shadow-lg shadow-navy-500/30 mb-4 glow-blue">
           <ScanLine className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-3xl font-extrabold text-white mb-2">فحص المنتجات</h1>
-        <p className="text-slate-400">صوّر المنتج، ارفع صورته، أو ابحث بالاسم — ونجمة تخبرك بموقفه من المقاطعة والبدائل</p>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-white mb-2">فحص المنتجات</h1>
+        <p className="text-slate-400 text-sm sm:text-base">صوّر المنتج، ارفع صورته، أو ابحث بالاسم — ونجمة تخبرك بموقفه من المقاطعة والبدائل</p>
       </div>
 
       {state.error && !state.capturedImage && (
@@ -494,7 +494,7 @@ export default function Scanner({ country }: { country: Country }) {
               </div>
             </div>
           ) : (
-            <div className={`rounded-3xl p-6 border-2 ${info.bg} ${info.border} shadow-xl ${info.ring}`}>
+            <div className={`rounded-2xl sm:rounded-3xl p-5 sm:p-6 border-2 ${info.bg} ${info.border} shadow-xl ${info.ring}`}>
               <div className="flex items-start gap-4 mb-4">
                 <div className={`w-14 h-14 rounded-2xl ${info.bg} ${info.color} flex items-center justify-center border ${info.border} flex-shrink-0`}>
                   <ResultIcon className="w-7 h-7" />
