@@ -57,10 +57,10 @@ const verdictInfo: Record<Verdict, { label: string; desc: string; color: string;
   unknown: {
     label: 'لم يتم التعرف',
     desc: 'لم تتمكن نجمة من التعرف على المنتج بوضوح. حاول التقاط صورة أوضح أو ابحث بالاسم.',
-    color: 'text-sky-300',
-    bg: 'bg-navy-500/10',
+    color: 'text-slate-300',
+    bg: 'bg-white/5',
     border: 'border-white/15',
-    ring: 'shadow-navy-500/20',
+    ring: 'shadow-black/20',
     icon: AlertCircle,
   },
 };
@@ -72,6 +72,9 @@ function toVerdict(s: string): Verdict {
   if (v === 'local' || v === 'arabic') return 'local';
   return 'unknown';
 }
+
+const goldGrad = 'linear-gradient(135deg, #c89a32, #7c5718)';
+const tealGrad = 'linear-gradient(135deg, #28b088, #0a7858)';
 
 export default function Scanner({ country }: { country: Country }) {
   const [state, setState] = useState<ScanState>({ status: 'idle' });
@@ -316,10 +319,10 @@ export default function Scanner({ country }: { country: Country }) {
   return (
     <div className="animate-fade-in max-w-2xl mx-auto">
       <div className="text-center mb-8">
-        <div className="inline-flex w-16 h-16 rounded-2xl bg-gradient-to-br from-navy-500 to-sky-400 items-center justify-center shadow-lg shadow-navy-500/30 mb-4 glow-blue">
+        <div className="inline-flex w-16 h-16 rounded-2xl items-center justify-center shadow-lg mb-4" style={{ background: goldGrad }}>
           <ScanLine className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-white mb-2">فحص المنتجات</h1>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-white mb-2 font-display">فحص المنتجات</h1>
         <p className="text-slate-400 text-sm sm:text-base">صوّر المنتج، ارفع صورته، أو ابحث بالاسم — ونجمة تخبرك بموقفه من المقاطعة والبدائل</p>
       </div>
 
@@ -331,13 +334,13 @@ export default function Scanner({ country }: { country: Country }) {
       )}
 
       <div className="glass rounded-3xl p-5 mb-6">
-        <div className="relative aspect-square w-full bg-navy-900 rounded-2xl overflow-hidden flex items-center justify-center">
+        <div className="relative aspect-square w-full bg-ink-900 rounded-2xl overflow-hidden flex items-center justify-center">
           {state.status === 'idle' && !cameraActive && (
             <div className="text-center p-6">
-              <div className="inline-flex w-20 h-20 rounded-full bg-navy-800 items-center justify-center mb-4">
-                <Camera className="w-10 h-10 text-sky-300" />
+              <div className="inline-flex w-20 h-20 rounded-full bg-ink-800 items-center justify-center mb-4">
+                <Camera className="w-10 h-10" style={{ color: '#c89a32' }} />
               </div>
-              <p className="text-sky-100 font-medium mb-1">الكاميرا متوقفة</p>
+              <p className="text-slate-100 font-medium mb-1">الكاميرا متوقفة</p>
               <p className="text-slate-500 text-sm">اضغط لفتح الكاميرا، ارفع صورة، أو ابحث بالاسم</p>
             </div>
           )}
@@ -345,21 +348,21 @@ export default function Scanner({ country }: { country: Country }) {
           {cameraActive && (
             <>
               <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
-              <div className="absolute inset-0 flex items-center justify-center bg-navy-900/40 pointer-events-none">
+              <div className="absolute inset-0 flex items-center justify-center bg-ink-900/40 pointer-events-none">
                 <div className="text-center">
-                  <Loader2 className="w-8 h-8 text-sky-300 animate-spin mx-auto mb-2" />
-                  <p className="text-sky-100 text-xs">جارٍ تشغيل الكاميرا...</p>
+                  <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" style={{ color: '#c89a32' }} />
+                  <p className="text-slate-100 text-xs">جارٍ تشغيل الكاميرا...</p>
                 </div>
               </div>
               <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute inset-8 border-2 border-sky-300/80 rounded-2xl">
-                  <div className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-sky-400 rounded-tr-lg" />
-                  <div className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-sky-400 rounded-tl-lg" />
-                  <div className="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-sky-400 rounded-br-lg" />
-                  <div className="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-sky-400 rounded-bl-lg" />
+                <div className="absolute inset-8 border-2 rounded-2xl" style={{ borderColor: 'rgba(200,154,50,0.8)' }}>
+                  <div className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 rounded-tr-lg" style={{ borderColor: '#c89a32' }} />
+                  <div className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 rounded-tl-lg" style={{ borderColor: '#c89a32' }} />
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 rounded-br-lg" style={{ borderColor: '#c89a32' }} />
+                  <div className="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 rounded-bl-lg" style={{ borderColor: '#c89a32' }} />
                 </div>
                 <div className="absolute top-4 right-4 bg-black/40 backdrop-blur-sm rounded-full px-3 py-1">
-                  <span className="text-sky-200 text-xs flex items-center gap-1.5">
+                  <span className="text-xs flex items-center gap-1.5">
                     <span className="w-2 h-2 bg-rose-400 rounded-full animate-pulse" />
                     مباشر
                   </span>
@@ -371,11 +374,10 @@ export default function Scanner({ country }: { country: Country }) {
           {state.status === 'scanning' && state.capturedImage && (
             <div className="relative w-full h-full">
               <img src={state.capturedImage} alt="منتج قيد الفحص" className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-navy-900/60 backdrop-blur-sm flex flex-col items-center justify-center">
-                {/* Skeleton shimmer overlay */}
-                <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-transparent via-sky-400/60 to-transparent animate-marquee" />
+              <div className="absolute inset-0 bg-ink-900/60 backdrop-blur-sm flex flex-col items-center justify-center">
+                <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-transparent via-gold-400/60 to-transparent animate-marquee" />
                 <div className="w-14 h-14 rounded-2xl bg-white/10 animate-pulse mb-3" />
-                <Loader2 className="w-10 h-10 text-sky-300 animate-spin mb-3" />
+                <Loader2 className="w-10 h-10 animate-spin mb-3" style={{ color: '#c89a32' }} />
                 <p className="text-white font-medium">نجمة تحلّل الصورة...</p>
                 <p className="text-slate-300 text-xs mt-1">يتم البحث في القاعدة المحلية ثم الذكاء الاصطناعي</p>
               </div>
@@ -413,7 +415,7 @@ export default function Scanner({ country }: { country: Country }) {
                   value={brandQuery}
                   onChange={(e) => setBrandQuery(e.target.value)}
                   placeholder="ابحث بالاسم (مثال: كوكاكولا، المراعي)..."
-                  className="w-full bg-ink-900/60 border border-white/10 rounded-2xl pr-9 pl-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-navy-400/60 focus:border-transparent transition-all text-sm"
+                  className="w-full bg-ink-900/60 border border-white/10 rounded-2xl pr-9 pl-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-gold-400/40 focus:border-transparent transition-all text-sm"
                 />
               </div>
               <button
@@ -430,7 +432,8 @@ export default function Scanner({ country }: { country: Country }) {
             <>
               <button
                 onClick={startCamera}
-                className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-br from-navy-500 to-navy-700 text-white font-bold px-6 py-3.5 rounded-2xl hover:shadow-lg hover:shadow-navy-500/30 transition-all"
+                className="w-full inline-flex items-center justify-center gap-2 text-white font-bold px-6 py-3.5 rounded-2xl hover:opacity-90 transition-all"
+                style={{ background: goldGrad }}
               >
                 <Camera className="w-5 h-5" />
                 فتح الكاميرا
@@ -456,7 +459,8 @@ export default function Scanner({ country }: { country: Country }) {
               </button>
               <button
                 onClick={capture}
-                className="inline-flex items-center justify-center gap-2 bg-gradient-to-br from-sky-500 to-navy-600 text-white font-bold px-6 py-3.5 rounded-2xl hover:shadow-lg hover:shadow-sky-500/30 transition-all"
+                className="inline-flex items-center justify-center gap-2 text-white font-bold px-6 py-3.5 rounded-2xl hover:opacity-90 transition-all"
+                style={{ background: tealGrad }}
               >
                 <Camera className="w-5 h-5" />
                 التقاط الصورة
@@ -488,7 +492,7 @@ export default function Scanner({ country }: { country: Country }) {
                   <AlertCircle className="w-7 h-7" />
                 </div>
                 <div>
-                  <p className="text-xl font-extrabold text-rose-300 mb-1">تعذّر الفحص</p>
+                  <p className="text-xl font-extrabold text-rose-300 mb-1 font-display">تعذّر الفحص</p>
                   <p className="text-slate-400 text-sm">{state.error}</p>
                 </div>
               </div>
@@ -500,7 +504,7 @@ export default function Scanner({ country }: { country: Country }) {
                   <ResultIcon className="w-7 h-7" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className={`text-2xl font-extrabold ${info.color} mb-1`}>{info.label}</p>
+                  <p className={`text-2xl font-extrabold ${info.color} mb-1 font-display`}>{info.label}</p>
                   {state.brand && (
                     <p className="text-slate-300 font-semibold text-sm mb-1">
                       اسم المنتج / العلامة: <span className="text-white">{state.brand}</span>
@@ -512,7 +516,7 @@ export default function Scanner({ country }: { country: Country }) {
                     </span>
                   )}
                   {state.source === 'gemini' && (
-                    <span className="inline-flex items-center gap-1 mt-1 text-[11px] text-sky-300/80 bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/20">
+                    <span className="inline-flex items-center gap-1 mt-1 text-[11px] bg-white/5 px-2 py-0.5 rounded-full border border-white/10" style={{ color: '#c89a32' }}>
                       <Sparkles className="w-3 h-3" /> نتيجة من الذكاء الاصطناعي
                     </span>
                   )}
@@ -554,7 +558,7 @@ export default function Scanner({ country }: { country: Country }) {
                   <Lightbulb className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-emerald-300">بدائل محلية في {country}</h3>
+                  <h3 className="font-extrabold text-emerald-300 font-display">بدائل محلية في {country}</h3>
                   <p className="text-slate-400 text-xs">
                     {cat === 'general'
                       ? 'بدائل عربية/محلية بديلة للمنتج المقاطَع'
@@ -597,9 +601,9 @@ export default function Scanner({ country }: { country: Country }) {
       {state.status === 'idle' && (
         <div className="glass rounded-2xl p-5">
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-sky-400 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: '#c89a32' }} />
             <div>
-              <p className="text-white font-semibold text-sm mb-1">كيف يعمل؟</p>
+              <p className="text-white font-semibold text-sm mb-1 font-display">كيف يعمل؟</p>
               <p className="text-slate-300 text-sm leading-relaxed">
                 صوّر منتجاً واضحاً، ارفع صورته، أو ابحث بالاسم. نجمة تبحث أولاً في قاعدة بيانات
                 محلية لأكثر من 100 منتج شائع بسرعة دون إنترنت، فإن لم تجده يحلّله الذكاء
@@ -619,8 +623,8 @@ export default function Scanner({ country }: { country: Country }) {
         <div className="mt-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <History className="w-5 h-5 text-sky-300" />
-              <h2 className="text-lg font-bold text-white">سجل الفحوصات</h2>
+              <History className="w-5 h-5" style={{ color: '#c89a32' }} />
+              <h2 className="text-lg font-bold text-white font-display">سجل الفحوصات</h2>
             </div>
             {history.length > 0 && (
               <button
@@ -634,7 +638,7 @@ export default function Scanner({ country }: { country: Country }) {
 
           {historyLoading ? (
             <div className="glass rounded-2xl p-6 text-center">
-              <Loader2 className="w-5 h-5 text-sky-300 animate-spin mx-auto" />
+              <Loader2 className="w-5 h-5 animate-spin mx-auto" style={{ color: '#c89a32' }} />
             </div>
           ) : history.length === 0 ? (
             <div className="glass rounded-2xl p-6 text-center text-slate-500 text-sm">
@@ -649,9 +653,9 @@ export default function Scanner({ country }: { country: Country }) {
                 return (
                   <div
                     key={item.id}
-                    className="glass rounded-2xl p-4 flex items-start gap-3 group hover:bg-white/[0.07] transition-colors"
+                    className="glass rounded-2xl p-4 flex items-start gap-3 group hover:bg-white/[0.04] transition-colors"
                   >
-                    <div className={`w-9 h-9 rounded-xl ${info ? `${info.bg} ${info.color}` : 'bg-navy-500/15 text-sky-300'} flex items-center justify-center flex-shrink-0`}>
+                    <div className={`w-9 h-9 rounded-xl ${info ? `${info.bg} ${info.color}` : 'bg-white/5'} flex items-center justify-center flex-shrink-0`} style={!info ? { color: '#c89a32' } : undefined}>
                       {Icon ? <Icon className="w-4 h-4" /> : <ScanLine className="w-4 h-4" />}
                     </div>
                     <div className="min-w-0 flex-1">

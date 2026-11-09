@@ -25,7 +25,7 @@ const statusStyles: Record<ApiStatus, { bg: string; text: string; border: string
   hasan: { bg: 'bg-sky-500/10', text: 'text-sky-300', border: 'border-sky-500/30', ring: 'shadow-sky-500/20', icon: Sparkles },
   daif: { bg: 'bg-amber-500/10', text: 'text-amber-300', border: 'border-amber-500/30', ring: 'shadow-amber-500/20', icon: AlertTriangle },
   mawdu: { bg: 'bg-rose-500/10', text: 'text-rose-300', border: 'border-rose-500/30', ring: 'shadow-rose-500/20', icon: XCircle },
-  unknown: { bg: 'bg-navy-500/10', text: 'text-sky-300', border: 'border-white/15', ring: 'shadow-navy-500/20', icon: AlertCircle },
+  unknown: { bg: 'bg-white/5', text: 'text-slate-300', border: 'border-white/15', ring: 'shadow-black/20', icon: AlertCircle },
 };
 
 function mapStatus(raw: string): { status: ApiStatus; label: string } {
@@ -37,6 +37,8 @@ function mapStatus(raw: string): { status: ApiStatus; label: string } {
   if (s.includes('لا أصل')) return { status: 'mawdu', label: 'لا أصل له' };
   return { status: 'unknown', label: raw || 'غير معروف' };
 }
+
+const goldGrad = 'linear-gradient(135deg, #c89a32, #7c5718)';
 
 export default function Hadith() {
   const [input, setInput] = useState('');
@@ -126,10 +128,10 @@ export default function Hadith() {
   return (
     <div className="animate-fade-in max-w-3xl mx-auto">
       <div className="text-center mb-8">
-        <div className="inline-flex w-16 h-16 rounded-2xl bg-gradient-to-br from-navy-500 to-sky-400 items-center justify-center shadow-lg shadow-navy-500/30 mb-4 glow-blue">
+        <div className="inline-flex w-16 h-16 rounded-2xl items-center justify-center shadow-lg mb-4" style={{ background: goldGrad }}>
           <BookOpen className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-3xl font-extrabold text-white mb-2">فحص الأحاديث</h1>
+        <h1 className="text-3xl font-extrabold text-white mb-2 font-display">فحص الأحاديث</h1>
         <p className="text-slate-400">اكتب الحديث ونجمة تخبرك بصحته وضعفه مع المصدر والشرح</p>
       </div>
 
@@ -140,7 +142,7 @@ export default function Hadith() {
           onChange={(e) => setInput(e.target.value)}
           placeholder="اكتب الحديث هنا... مثال: إنما الأعمال بالنيات"
           rows={3}
-          className="w-full bg-ink-900/60 border border-white/10 rounded-2xl px-4 py-3.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-navy-400/60 focus:border-transparent transition-all resize-none font-arabic text-lg"
+          className="w-full bg-ink-900/60 border border-white/10 rounded-2xl px-4 py-3.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-gold-400/40 focus:border-transparent transition-all resize-none font-arabic text-lg"
           onKeyDown={(e) => {
             if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleSearch();
           }}
@@ -160,7 +162,8 @@ export default function Hadith() {
             <button
               onClick={handleSearch}
               disabled={!input.trim() || state.kind === 'loading'}
-              className="inline-flex items-center gap-2 bg-gradient-to-br from-navy-500 to-navy-700 text-white font-bold px-6 py-2.5 rounded-xl hover:shadow-lg hover:shadow-navy-500/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-2 text-white font-bold px-6 py-2.5 rounded-xl hover:opacity-90 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{ background: goldGrad }}
             >
               {state.kind === 'loading' ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -175,8 +178,8 @@ export default function Hadith() {
 
       {state.kind === 'loading' && (
         <div className="glass rounded-3xl p-8 text-center animate-slide-up">
-          <div className="inline-flex w-16 h-16 rounded-full bg-navy-500/10 items-center justify-center mb-4">
-            <Loader2 className="w-8 h-8 text-sky-300 animate-spin" />
+          <div className="inline-flex w-16 h-16 rounded-full bg-white/5 items-center justify-center mb-4">
+            <Loader2 className="w-8 h-8 animate-spin" style={{ color: '#c89a32' }} />
           </div>
           <p className="text-slate-300 font-medium">نجمة تبحث في المراجع...</p>
         </div>
@@ -223,8 +226,8 @@ function HistorySection({
     <div className="mt-8">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <History className="w-5 h-5 text-sky-300" />
-          <h2 className="text-lg font-bold text-white">سجل الفحوصات</h2>
+          <History className="w-5 h-5" style={{ color: '#c89a32' }} />
+          <h2 className="text-lg font-bold text-white font-display">سجل الفحوصات</h2>
         </div>
         {history.length > 0 && (
           <button
@@ -238,7 +241,7 @@ function HistorySection({
 
       {loading ? (
         <div className="glass rounded-2xl p-6 text-center">
-          <Loader2 className="w-5 h-5 text-sky-300 animate-spin mx-auto" />
+          <Loader2 className="w-5 h-5 animate-spin mx-auto" style={{ color: '#c89a32' }} />
         </div>
       ) : history.length === 0 ? (
         <div className="glass rounded-2xl p-6 text-center text-slate-500 text-sm">
@@ -249,9 +252,9 @@ function HistorySection({
           {history.map((item) => (
             <div
               key={item.id}
-              className="glass rounded-2xl p-4 flex items-start gap-3 group hover:bg-white/[0.07] transition-colors"
+              className="glass rounded-2xl p-4 flex items-start gap-3 group hover:bg-white/[0.04] transition-colors"
             >
-              <div className="w-9 h-9 rounded-xl bg-navy-500/15 text-sky-300 flex items-center justify-center flex-shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0" style={{ color: '#c89a32' }}>
                 <BookOpen className="w-4 h-4" />
               </div>
               <div className="min-w-0 flex-1">
@@ -260,7 +263,7 @@ function HistorySection({
                 </p>
                 <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-500">
                   {item.status_label && (
-                    <span className="text-sky-300 font-medium">{item.status_label}</span>
+                    <span className="font-medium" style={{ color: '#c89a32' }}>{item.status_label}</span>
                   )}
                   <span className="flex items-center gap-1">
                     <Clock className="w-3 h-3" />
@@ -299,7 +302,7 @@ function FoundView({ data, onReset }: { data: UiResult; onReset: () => void }) {
             <Icon className="w-7 h-7" />
           </div>
           <div>
-            <p className={`text-2xl font-extrabold ${style.text}`}>{data.statusLabel}</p>
+            <p className={`text-2xl font-extrabold ${style.text} font-display`}>{data.statusLabel}</p>
             <p className="text-slate-400 text-sm mt-0.5">{data.source}</p>
           </div>
         </div>
@@ -345,7 +348,7 @@ function ErrorView({ message, onReset }: { message: string; onReset: () => void 
             <AlertCircle className="w-7 h-7" />
           </div>
           <div>
-            <p className="text-xl font-extrabold text-rose-300">تعذّر الفحص</p>
+            <p className="text-xl font-extrabold text-rose-300 font-display">تعذّر الفحص</p>
             <p className="text-slate-400 text-sm mt-0.5">{message}</p>
           </div>
         </div>

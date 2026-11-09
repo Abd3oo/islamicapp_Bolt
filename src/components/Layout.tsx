@@ -20,14 +20,6 @@ const navItems: { id: Page; label: string; icon: typeof Home }[] = [
   { id: 'scanner', label: 'فحص المنتجات', icon: ScanLine },
 ];
 
-const stars = Array.from({ length: 28 }, (_, i) => ({
-  id: i,
-  top: `${(i * 37) % 100}%`,
-  left: `${(i * 53) % 100}%`,
-  size: i % 4 === 0 ? 'w-1.5 h-1.5' : 'w-1 h-1',
-  delay: `${(i % 5) * 0.6}s`,
-}));
-
 export default function Layout({ currentPage, onNavigate, country, onCountryChange, children }: LayoutProps) {
   const { user, signOut } = useAuth();
   const [scrolled, setScrolled] = useState(false);
@@ -43,25 +35,10 @@ export default function Layout({ currentPage, onNavigate, country, onCountryChan
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-ink-950 text-slate-100">
-      {/* Animated aurora background */}
-      <div className="fixed inset-0 -z-20 pointer-events-none">
-        <div className="absolute -top-40 -right-32 w-[55vw] h-[55vw] bg-navy-600/25 rounded-full blur-[120px] animate-aurora" />
-        <div className="absolute top-1/3 -left-32 w-[50vw] h-[50vw] bg-sky-500/20 rounded-full blur-[120px] animate-aurora" style={{ animationDelay: '4s' }} />
-        <div className="absolute -bottom-40 right-1/4 w-[45vw] h-[45vw] bg-navy-500/15 rounded-full blur-[120px] animate-aurora" style={{ animationDelay: '8s' }} />
-      </div>
-
-      {/* Grid overlay */}
-      <div className="fixed inset-0 -z-10 bg-grid-pattern [background-size:48px_48px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)] opacity-60" />
-
-      {/* Twinkling stars */}
+      {/* Subtle warm gradient backdrop */}
       <div className="fixed inset-0 -z-10 pointer-events-none">
-        {stars.map((s) => (
-          <span
-            key={s.id}
-            className={`absolute ${s.size} rounded-full bg-white animate-twinkle`}
-            style={{ top: s.top, left: s.left, animationDelay: s.delay }}
-          />
-        ))}
+        <div className="absolute -top-32 right-1/4 w-[60vw] h-[50vw] rounded-full opacity-[0.04]" style={{ background: 'radial-gradient(circle, #c89a32, transparent 60%)' }} />
+        <div className="absolute bottom-0 left-1/4 w-[50vw] h-[40vw] rounded-full opacity-[0.03]" style={{ background: 'radial-gradient(circle, #28b088, transparent 60%)' }} />
       </div>
 
       {/* Header */}
@@ -77,14 +54,13 @@ export default function Layout({ currentPage, onNavigate, country, onCountryChan
               className="flex items-center gap-2 group flex-shrink-0"
             >
               <div className="relative">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-sky-400 via-navy-500 to-navy-700 flex items-center justify-center shadow-lg shadow-navy-500/40 group-hover:scale-110 transition-transform glow-blue">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform" style={{ background: 'linear-gradient(135deg, #dcbb6e, #9a6e1c)' }}>
                   <Star className="w-4 h-4 sm:w-5 sm:h-5 text-white fill-white" />
                 </div>
-                <div className="absolute -top-1 -right-1 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-sky-300 rounded-full animate-pulse" />
               </div>
               <div className="text-right">
-                <h1 className="text-base sm:text-xl font-extrabold text-white leading-none">نجمة</h1>
-                <p className="text-[9px] sm:text-xs text-sky-300/70 mt-0.5 hidden xs:block">المرجع الديني الذكي</p>
+                <h1 className="text-base sm:text-xl font-extrabold text-white leading-none font-display">نجمة</h1>
+                <p className="text-[9px] sm:text-xs text-gold-400/70 mt-0.5 hidden xs:block" style={{ color: 'rgba(200,154,50,0.7)' }}>المرجع الديني الذكي</p>
               </div>
             </button>
 
@@ -102,7 +78,7 @@ export default function Layout({ currentPage, onNavigate, country, onCountryChan
                     }`}
                   >
                     {active && (
-                      <span className="absolute inset-0 bg-gradient-to-br from-navy-500 to-navy-700 rounded-xl shadow-lg shadow-navy-500/40" />
+                      <span className="absolute inset-0 rounded-xl" style={{ background: 'linear-gradient(135deg, #b68420, #7c5718)' }} />
                     )}
                     <Icon className="w-4 h-4 relative z-10" />
                     <span className="relative z-10">{item.label}</span>
@@ -123,10 +99,9 @@ export default function Layout({ currentPage, onNavigate, country, onCountryChan
               <div className="relative">
                 <button
                   onClick={() => setCountryOpen((v) => !v)}
-                  className="inline-flex items-center gap-1 glass text-slate-200 hover:text-sky-300 font-medium px-2.5 py-2 rounded-xl hover:bg-white/10 transition-colors text-sm"
-                  aria-label="اختر دولتك"
+                  className="inline-flex items-center gap-1 glass text-slate-200 hover:text-gold-300 font-medium px-2.5 py-2 rounded-xl hover:bg-white/5 transition-colors text-sm"
                 >
-                  <MapPin className="w-4 h-4 text-sky-300 flex-shrink-0" />
+                  <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: '#c89a32' }} />
                   <span className="hidden sm:inline max-w-[80px] truncate">{country}</span>
                   <ChevronDown className={`w-3.5 h-3.5 transition-transform ${countryOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -142,8 +117,9 @@ export default function Layout({ currentPage, onNavigate, country, onCountryChan
                             setCountryOpen(false);
                           }}
                           className={`w-full text-right px-3 py-2 rounded-xl text-sm transition-colors flex items-center gap-2 ${
-                            c === country ? 'bg-gradient-to-br from-navy-500 to-navy-700 text-white' : 'text-slate-300 hover:text-white hover:bg-white/5'
+                            c === country ? 'text-white' : 'text-slate-300 hover:text-white hover:bg-white/5'
                           }`}
+                          style={c === country ? { background: 'linear-gradient(135deg, #b68420, #7c5718)' } : undefined}
                         >
                           <MapPin className="w-3.5 h-3.5 opacity-70" />
                           {c}
@@ -160,7 +136,7 @@ export default function Layout({ currentPage, onNavigate, country, onCountryChan
                   <button
                     onClick={() => onNavigate('account')}
                     title="حسابي"
-                    className="inline-flex items-center justify-center glass text-slate-300 hover:text-sky-300 w-9 h-9 rounded-2xl hover:bg-white/10 transition-colors"
+                    className="inline-flex items-center justify-center glass text-slate-300 hover:text-gold-300 w-9 h-9 rounded-2xl hover:bg-white/5 transition-colors"
                     aria-label="حسابي"
                   >
                     <UserCircle className="w-4 h-4" />
@@ -168,7 +144,7 @@ export default function Layout({ currentPage, onNavigate, country, onCountryChan
                   <button
                     onClick={() => signOut()}
                     title="تسجيل الخروج"
-                    className="inline-flex items-center gap-2 glass text-slate-300 hover:text-rose-300 font-medium px-3 py-2 rounded-2xl hover:bg-white/10 transition-colors text-sm"
+                    className="inline-flex items-center gap-2 glass text-slate-300 hover:text-rose-300 font-medium px-3 py-2 rounded-2xl hover:bg-white/5 transition-colors text-sm"
                   >
                     <LogOut className="w-4 h-4" />
                     <span>خروج</span>
@@ -177,7 +153,8 @@ export default function Layout({ currentPage, onNavigate, country, onCountryChan
               ) : (
                 <button
                   onClick={() => onNavigate('login')}
-                  className="hidden sm:inline-flex items-center gap-2 bg-gradient-to-br from-sky-500 to-navy-600 text-white font-medium px-3.5 py-2 rounded-2xl hover:shadow-lg hover:shadow-navy-500/30 transition-all text-sm"
+                  className="hidden sm:inline-flex items-center gap-2 text-white font-medium px-3.5 py-2 rounded-2xl hover:opacity-90 transition-all text-sm"
+                  style={{ background: 'linear-gradient(135deg, #c89a32, #9a6e1c)' }}
                 >
                   <LogIn className="w-4 h-4" />
                   <span>دخول</span>
@@ -188,7 +165,7 @@ export default function Layout({ currentPage, onNavigate, country, onCountryChan
                 <button
                   onClick={() => onNavigate('admin')}
                   title="لوحة الأمن"
-                  className="hidden sm:inline-flex items-center justify-center glass text-slate-300 hover:text-sky-300 w-9 h-9 rounded-2xl hover:bg-white/10 transition-colors"
+                  className="hidden sm:inline-flex items-center justify-center glass text-slate-300 hover:text-gold-300 w-9 h-9 rounded-2xl hover:bg-white/5 transition-colors"
                   aria-label="لوحة الأمن"
                 >
                   <Shield className="w-4 h-4" />
@@ -198,7 +175,7 @@ export default function Layout({ currentPage, onNavigate, country, onCountryChan
               {/* Mobile menu toggle */}
               <button
                 onClick={() => setMobileOpen((v) => !v)}
-                className="md:hidden inline-flex items-center justify-center glass text-slate-200 w-9 h-9 rounded-xl hover:bg-white/10 transition-colors"
+                className="md:hidden inline-flex items-center justify-center glass text-slate-200 w-9 h-9 rounded-xl hover:bg-white/5 transition-colors"
                 aria-label="القائمة"
               >
                 {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -219,8 +196,9 @@ export default function Layout({ currentPage, onNavigate, country, onCountryChan
                     key={item.id}
                     onClick={() => { onNavigate(item.id); setMobileOpen(false); }}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                      active ? 'bg-gradient-to-br from-navy-500 to-navy-700 text-white' : 'text-slate-300 hover:text-white hover:bg-white/5'
+                      active ? 'text-white' : 'text-slate-300 hover:text-white hover:bg-white/5'
                     }`}
+                    style={active ? { background: 'linear-gradient(135deg, #b68420, #7c5718)' } : undefined}
                   >
                     <Icon className="w-5 h-5" />
                     {item.label}
@@ -237,7 +215,7 @@ export default function Layout({ currentPage, onNavigate, country, onCountryChan
               <div className="border-t border-white/10 pt-3 space-y-2">
                 {user ? (
                   <>
-                    <div className="flex items-center gap-2 px-4 py-2 text-sky-300 text-sm">
+                    <div className="flex items-center gap-2 px-4 py-2 text-gold-300 text-sm" style={{ color: '#c89a32' }}>
                       <User className="w-4 h-4" />
                       <span className="truncate" dir="ltr">{user.email}</span>
                     </div>
@@ -268,7 +246,8 @@ export default function Layout({ currentPage, onNavigate, country, onCountryChan
                 ) : (
                   <button
                     onClick={() => { onNavigate('login'); setMobileOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white bg-gradient-to-br from-sky-500 to-navy-600 transition-all"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white transition-all"
+                    style={{ background: 'linear-gradient(135deg, #c89a32, #9a6e1c)' }}
                   >
                     <LogIn className="w-5 h-5" />
                     تسجيل الدخول
